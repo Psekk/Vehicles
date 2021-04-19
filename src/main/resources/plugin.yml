@@ -1,0 +1,6 @@
+name: Vehicles
+version: ${project.version}
+main: me.psek.vehicles.Vehicles
+api-version: 1.16
+authors: [ Psek ]
+description: car go brrrrrrrrrrrrrrrrrrrrrrrr
