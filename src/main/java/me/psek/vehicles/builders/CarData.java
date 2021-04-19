@@ -25,6 +25,14 @@ public class CarData {
     private final List<Vector> seatPositions;
     @Getter
     private final List<Vector> bumperPositions;
+    @Getter
+    private final int gearCount;
+    @Getter
+    private final double shiftTime;
+    @Getter
+    private final List<Integer> RPMs;
+
+    //todo add gears/shifting
 
     public static class Builder {
         private String name;
@@ -35,6 +43,9 @@ public class CarData {
         private int seatCount;
         private List<Vector> seatPositions;
         private List<Vector> bumperPositions;
+        private int gearCount;
+        private double shiftTime;
+        private List<Integer> RPMs;
 
         public Builder withName(String name) {
             this.name = name;
@@ -76,15 +87,31 @@ public class CarData {
             return this;
         }
 
+        public Builder withGearCount(int gearCount) {
+            this.gearCount = gearCount;
+            return this;
+        }
+
+        public Builder withShiftTime(double shiftTime) {
+            this.shiftTime = shiftTime;
+            return this;
+        }
+
+        public Builder withRPMs(List<Integer> RPMs) {
+            this.RPMs = RPMs;
+            return this;
+        }
+
         public CarData build() {
-            return new CarData(name, id, accelerationSpeed, brakingSpeed, backwardsAccelerationSpeed, seatCount, seatPositions, bumperPositions);
+            return new CarData(name, id, accelerationSpeed, brakingSpeed, backwardsAccelerationSpeed, seatCount, seatPositions, bumperPositions, gearCount, shiftTime, RPMs);
         }
     }
 
     private CarData(String name, int id, double accelerationSpeed,
                     double backwardsAccelerationSpeed, double brakingSpeed,
                     int seatCount, List<Vector> seatPositions,
-                    List<Vector> bumperLocations) {
+                    List<Vector> bumperLocations, int gearCount,
+                    double shiftTime, List<Integer> RPMs) {
         this.name = name;
         this.id = id;
         this.accelerationSpeed = accelerationSpeed;
@@ -93,5 +120,8 @@ public class CarData {
         this.seatCount = seatCount;
         this.seatPositions = seatPositions;
         this.bumperPositions = bumperLocations;
+        this.gearCount = gearCount;
+        this.shiftTime = shiftTime;
+        this.RPMs = RPMs;
     }
 }

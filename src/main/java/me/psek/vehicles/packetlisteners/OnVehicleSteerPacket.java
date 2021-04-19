@@ -13,14 +13,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 
 public class OnVehicleSteerPacket {
     private static final PluginManager PLUGIN_MANAGER = Bukkit.getPluginManager();
     private static final Vehicles PLUGIN_INSTANCE = Vehicles.getPluginInstance();
-    private static final NamespacedKey VEHICLE_NAME_KEY = new NamespacedKey(PLUGIN_INSTANCE, "isSteeringSeat");
+    private static final NamespacedKey IS_STEERING_SEAT_KEY = new NamespacedKey(PLUGIN_INSTANCE, "isSteeringSeat");
 
     static {
         Vehicles.getProtocolManager().addPacketListener(
@@ -47,7 +46,7 @@ public class OnVehicleSteerPacket {
                                 System.out.println(direction.directionValue);
 
                                 CarData carData = CarData.ALL_REGISTERED_CARS
-                                        .get(vehicleEntity.getPersistentDataContainer().get(VEHICLE_NAME_KEY, PersistentDataType.STRING));
+                                        .get(vehicleEntity.getPersistentDataContainer().get(IS_STEERING_SEAT_KEY, PersistentDataType.STRING));
 
                                 VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData, direction);
                                 PLUGIN_MANAGER.callEvent(vehicleSteerEvent);
