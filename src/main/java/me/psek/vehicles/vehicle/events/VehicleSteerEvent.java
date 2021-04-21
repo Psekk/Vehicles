@@ -1,9 +1,9 @@
-package me.psek.vehicles.events;
+package me.psek.vehicles.vehicle.events;
 
 import lombok.Getter;
 import lombok.Setter;
-import me.psek.vehicles.builders.CarData;
-import me.psek.vehicles.enums.VehicleSteerDirection;
+import me.psek.vehicles.vehicle.builders.CarData;
+import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;

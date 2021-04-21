@@ -4,3 +4,7 @@ main: me.psek.vehicles.Vehicles
 api-version: 1.16
 authors: [ Psek ]
 description: car go brrrrrrrrrrrrrrrrrrrrrrrr
+commands:
+  vehicles:
+    description: cool brrrrrrr
+    aliases: [vehicles, vehicle, ve, v]

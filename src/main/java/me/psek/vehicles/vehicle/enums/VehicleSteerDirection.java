@@ -1,4 +1,4 @@
-package me.psek.vehicles.enums;
+package me.psek.vehicles.vehicle.enums;
 
 public enum VehicleSteerDirection {
     FORWARD(0),
