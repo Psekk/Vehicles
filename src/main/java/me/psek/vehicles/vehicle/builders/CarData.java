@@ -50,6 +50,8 @@ public class CarData {
     private final List<Double> accelerationMultipliers;
     @Getter
     private final double gripFactor;
+    @Getter
+    private final int maxRedRPMTicks;
 
     public static class Builder {
         private String name;
@@ -68,6 +70,7 @@ public class CarData {
         private List<Double> accelerationMultipliers;
         private List<Double> RPMIncreasePerGear;
         private double gripFactor;
+        private int maxRedRPMTicks;
 
         public Builder withName(String name) {
             this.name = name;
@@ -153,6 +156,11 @@ public class CarData {
             return this;
         }
 
+        public Builder withMaxRedRPMTicks(int maxRedRPMTicks) {
+            this.maxRedRPMTicks = maxRedRPMTicks;
+            return this;
+        }
+
         public CarData build() {
             return new CarData(name,
                     id,
@@ -169,7 +177,8 @@ public class CarData {
                     isAutomaticShifting,
                     accelerationMultipliers,
                     RPMIncreasePerGear,
-                    gripFactor);
+                    gripFactor,
+                    maxRedRPMTicks);
         }
     }
 
@@ -179,7 +188,8 @@ public class CarData {
                     List<Vector> boundingBoxVectors, int gearCount,
                     int shiftTime, List<Integer> RPMs, int steeringSeatIndex,
                     boolean isAS, List<Double> aMultipliers,
-                    List<Double> RPMIncreasePerGear, double gripFactor) {
+                    List<Double> RPMIncreasePerGear, double gripFactor,
+                    int maxRedRPMTicks) {
         this.name = name;
         this.id = id;
         this.accelerationSpeed = accelerationSpeed;
@@ -196,5 +206,6 @@ public class CarData {
         this.accelerationMultipliers = aMultipliers;
         this.RPMIncreasePerGear = RPMIncreasePerGear;
         this.gripFactor = gripFactor;
+        this.maxRedRPMTicks = maxRedRPMTicks;
     }
 }

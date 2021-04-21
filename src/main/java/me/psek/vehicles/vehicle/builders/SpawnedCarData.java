@@ -11,7 +11,6 @@ import java.util.UUID;
 
 public class SpawnedCarData {
     public static final HashMap<UUID, SpawnedCarData> ALL_SPAWNED_CAR_DATA = new HashMap<>();
-    public static final HashMap<UUID, SpawnedCarData> IN_RED_RPM_ZONE = new HashMap<>();
 
     @Getter
     private final CarData carData;
@@ -36,6 +35,9 @@ public class SpawnedCarData {
     private List<Location> entityLocations;
     @Getter
     private final List<UUID> entityUUIDs;
+    @Getter
+    @Setter
+    private int ticksInRedZone = 0;
 
     public SpawnedCarData(CarData carData, List<Location> entityLocations, Vector cVector, double cSpeed, double cRPM, List<UUID> entityUUIDs) {
         this.carData = carData;

@@ -8,6 +8,7 @@ import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.listeners.OnPlayerEntityInteract;
 import me.psek.vehicles.vehicle.packetlisteners.OnVehicleSteerPacket;
 import me.psek.vehicles.vehicle.Actions;
+import me.psek.vehicles.vehicle.tickers.RPMTicker;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
@@ -46,6 +47,7 @@ public final class Vehicles extends JavaPlugin {
         registerPacketListeners();
         registerCommands();
         registerListeners(new OnPlayerEntityInteract());
+        new RPMTicker();
 
         CarData.ALL_REGISTERED_CARS.put("lada", new CarData.Builder()
                 .withName("lada")
@@ -86,6 +88,7 @@ public final class Vehicles extends JavaPlugin {
                 ))
                 .isAutomaticShifting(false)
                 .withGripFactor(0.78921)
+                .withMaxRedRPMTicks(45)
                 .build());
     }
 

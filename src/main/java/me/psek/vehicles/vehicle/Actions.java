@@ -4,6 +4,7 @@ import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.vehicle.builders.SpawnedCarData;
 import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
+import me.psek.vehicles.vehicle.tickers.RPMTicker;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -124,10 +125,10 @@ public class Actions {
                     System.out.println("gassing");
                     double RPMIncrease = carData.getRPMIncreasePerGear().get(currentGear - 1);
                     spawnedCarData.setCurrentRPM(spawnedCarData.getCurrentRPM() + RPMIncrease);
-                    //todo add rpm ticker to check how long it is inside the zone
                     if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
-                        SpawnedCarData.IN_RED_RPM_ZONE.put(spawnedCarData.getEntityUUIDs().get(0), spawnedCarData);
+                        RPMTicker.addRedRPM(spawnedCarData.getEntityUUIDs().get(0), spawnedCarData);
                     }
+                    //todo add the actual moving
                 } else {
                     System.out.println("braking");
                 }
@@ -139,9 +140,6 @@ public class Actions {
 
             //left
             case 3:
-
-            default:
-                return;
         }
     }
 }
