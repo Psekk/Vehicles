@@ -35,6 +35,7 @@ public final class Vehicles extends JavaPlugin {
     public void onEnable() {
         pluginInstance = this;
         protocolManager = ProtocolLibrary.getProtocolManager();
+        actionsInstance = new Actions();
 
         uuidOfCenterAsKey = new NamespacedKey(this, "uuidOfCenterAS");
         uuidOfChildrenAsKey = new NamespacedKey(this, "uuidOfChildrenAS");

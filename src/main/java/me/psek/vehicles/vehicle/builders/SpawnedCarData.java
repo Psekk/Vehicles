@@ -3,25 +3,22 @@ package me.psek.vehicles.vehicle.builders;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
-import org.bukkit.util.Vector;
+import org.bukkit.entity.Entity;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 
 public class SpawnedCarData {
-    public static final HashMap<UUID, SpawnedCarData> ALL_SPAWNED_CAR_DATA = new HashMap<>();
+    public static final HashMap<String, SpawnedCarData> ALL_SPAWNED_CAR_DATA = new HashMap<>();
 
     @Getter
     private final CarData carData;
     @Getter
     @Setter
-    private Vector currentVector;
-    @Getter
-    @Setter
     private double currentSpeed;
     @Getter
     @Setter
+    //change to 0 after testing cus ehh no shifting implemented yet
     private int currentGear;
     @Getter
     @Setter
@@ -34,17 +31,17 @@ public class SpawnedCarData {
     @Setter
     private List<Location> entityLocations;
     @Getter
-    private final List<UUID> entityUUIDs;
+    private final List<Entity> entities;
     @Getter
     @Setter
     private int ticksInRedZone = 0;
 
-    public SpawnedCarData(CarData carData, List<Location> entityLocations, Vector cVector, double cSpeed, double cRPM, List<UUID> entityUUIDs) {
+    public SpawnedCarData(CarData carData, List<Location> entityLocations, double cSpeed, double cRPM, List<Entity> entities, int currentGear) {
         this.carData = carData;
         this.entityLocations = entityLocations;
-        this.currentVector = cVector;
         this.currentSpeed = cSpeed;
         this.currentRPM = cRPM;
-        this.entityUUIDs = entityUUIDs;
+        this.entities = entities;
+        this.currentGear = currentGear;
     }
 }

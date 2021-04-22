@@ -13,8 +13,7 @@ public class OnPlayerEntityInteract implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
         System.out.println("started check");
-        if (event.getRightClicked().getPersistentDataContainer().has(Vehicles.uuidOfCenterAsKey, PersistentDataType.STRING)
-                && !event.getRightClicked().getPersistentDataContainer().has(Vehicles.isBackBumperKey, PersistentDataType.INTEGER)) {
+        if (event.getRightClicked().getPersistentDataContainer().has(Vehicles.uuidOfCenterAsKey, PersistentDataType.STRING)) {
             Entity clickedEntity = event.getRightClicked();
             System.out.println(clickedEntity instanceof ArmorStand);
             System.out.println(clickedEntity.getPassengers().size() < 1);

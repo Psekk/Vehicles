@@ -29,7 +29,7 @@ public class RPMTicker {
                     if (ticksInRedZone > 0) {
                         inRedZoneCar.setTicksInRedZone(ticksInRedZone);
                     } else {
-                        IN_RED_RPM_ZONE.remove(inRedZoneCar.getEntityUUIDs().get(0));
+                        IN_RED_RPM_ZONE.remove(inRedZoneCar.getEntities().get(0).getUniqueId());
                     }
                 }
             }
