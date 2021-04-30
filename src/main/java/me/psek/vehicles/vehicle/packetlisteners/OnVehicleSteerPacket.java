@@ -10,17 +10,19 @@ import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.vehicle.builders.SpawnedCarData;
 import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import me.psek.vehicles.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Objects;
+
 
 public class OnVehicleSteerPacket {
-    private static final Actions ACTIONS_INSTANCE = Vehicles.getActionsInstance();
+    private static final Vehicles PLUGIN_INSTANCE = Vehicles.getPluginInstance();
 
     static {
         Vehicles.getProtocolManager().addPacketListener(
-                //todo fix the motherfucking annoying yee yee ass sync error bs
                 new PacketAdapter(Vehicles.getPluginInstance(), ListenerPriority.HIGHEST, PacketType.Play.Client.STEER_VEHICLE) {
                     @Override
                     public void onPacketReceiving(PacketEvent event) {
@@ -28,10 +30,19 @@ public class OnVehicleSteerPacket {
                             float sidewaysValue = event.getPacket().getFloat().read(0);
                             float forwardsValue = event.getPacket().getFloat().read(1);
 
+                            if (event.getPacket().getBooleans().read(0)) {
+                                Player player = event.getPlayer();
+                                Entity vehicleEntity = player.getVehicle();
+                                SpawnedCarData spawnedCarData = SpawnedCarData.ALL_SPAWNED_CAR_DATA
+                                        .get(Utils.bytesAsUuid(Objects.requireNonNull(vehicleEntity)
+                                        .getPersistentDataContainer()
+                                        .get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
+                                Actions.toggleHandBrake(spawnedCarData);
+                            }
+
                             Player player = event.getPlayer();
                             if (Utils.canDrive(player)) {
                                 Entity vehicleEntity = event.getPlayer().getVehicle();
-
                                 VehicleSteerDirection direction = null;
                                 if (forwardsValue > 0) {
                                     direction = VehicleSteerDirection.FORWARD;
@@ -45,11 +56,11 @@ public class OnVehicleSteerPacket {
 
                                 if (direction != null) {
                                     CarData carData = CarData.ALL_REGISTERED_CARS
-                                            .get(vehicleEntity.getPersistentDataContainer().get(Vehicles.vehicleNameKey, PersistentDataType.STRING));
-
+                                            .get(Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().get(Vehicles.vehicleNameKey, PersistentDataType.STRING));
                                     SpawnedCarData spawnedCarData = SpawnedCarData.ALL_SPAWNED_CAR_DATA
-                                            .get(vehicleEntity.getPersistentDataContainer().get(Vehicles.uuidOfCenterAsKey, PersistentDataType.STRING));
-                                    ACTIONS_INSTANCE.steerVehicle(spawnedCarData, direction);
+                                            .get(Utils.bytesAsUuid(vehicleEntity.getPersistentDataContainer().get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
+                                    VehicleSteerDirection finalDirection = direction;
+                                    Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> Actions.steerVehicle(spawnedCarData, finalDirection));
                                 }
                             }
                         }

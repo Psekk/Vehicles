@@ -1,7 +1,9 @@
 name: Vehicles
 version: ${project.version}
 main: me.psek.vehicles.Vehicles
-api-version: 1.16
+api-version: 1.14
+depend:
+  - ProtocolLib
 authors: [ Psek ]
 description: car go brrrrrrrrrrrrrrrrrrrrrrrr
 commands:

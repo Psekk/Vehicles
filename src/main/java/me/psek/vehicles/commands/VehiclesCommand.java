@@ -9,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class VehiclesCommand implements CommandExecutor {
-    private static final Actions ACTIONS_INSTANCE = Vehicles.getActionsInstance();
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 2) {
@@ -18,12 +17,12 @@ public class VehiclesCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case ("spawn"):
                if (CarData.ALL_REGISTERED_CARS.containsKey(args[1].toLowerCase())) {
-                   ACTIONS_INSTANCE.spawn(((Player) sender).getLocation(), args[1]);
+                   Actions.spawn(((Player) sender).getLocation(), args[1]);
                    return true;
                }
             case ("test"):
                 if (CarData.ALL_REGISTERED_CARS.containsKey(args[1].toLowerCase())) {
-                    ACTIONS_INSTANCE.spawn(((Player) sender).getLocation(), args[1]);
+                    Actions.spawn(((Player) sender).getLocation(), args[1]);
 
                 }
         }

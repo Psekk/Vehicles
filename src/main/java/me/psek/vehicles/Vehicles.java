@@ -3,12 +3,11 @@ package me.psek.vehicles;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import lombok.Getter;
+import me.psek.vehicles.listeners.OnPlayerQuit;
 import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.listeners.OnPlayerEntityInteract;
 import me.psek.vehicles.vehicle.packetlisteners.OnVehicleSteerPacket;
-import me.psek.vehicles.vehicle.Actions;
-import me.psek.vehicles.vehicle.tickers.RPMTicker;
 import org.bukkit.NamespacedKey;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginManager;
@@ -22,8 +21,6 @@ public final class Vehicles extends JavaPlugin {
     private static ProtocolManager protocolManager;
     @Getter
     private static Vehicles pluginInstance;
-    @Getter
-    private static Actions actionsInstance;
 
     public static NamespacedKey uuidOfCenterAsKey;
     public static NamespacedKey uuidOfChildrenAsKey;
@@ -35,26 +32,15 @@ public final class Vehicles extends JavaPlugin {
     public void onEnable() {
         pluginInstance = this;
         protocolManager = ProtocolLibrary.getProtocolManager();
-        actionsInstance = new Actions();
-
-        uuidOfCenterAsKey = new NamespacedKey(this, "uuidOfCenterAS");
-        uuidOfChildrenAsKey = new NamespacedKey(this, "uuidOfChildrenAS");
-        isSteeringSeatKey = new NamespacedKey(this, "isSteeringSeat");
-        isBackBoundingBoxKey = new NamespacedKey(this, "isBackBoundingBox");
-        vehicleNameKey = new NamespacedKey(this, "vehicleName");
 
         //todo create the custom bounding box stuff that checks for hits etc just do 2 points in top right and bottom left and check if smth intersects it and kaboom
 
-        registerPacketListeners();
-        registerCommands();
-        registerListeners(new OnPlayerEntityInteract());
-        new RPMTicker();
-
         CarData.ALL_REGISTERED_CARS.put("lada", new CarData.Builder()
                 .withName("lada")
-                .withId(0).withAccelerationSpeed(3.2)
+                .withId(0)
+                .withAccelerationSpeed(0.2)
                 .withBrakingSpeed(0.3)
-                .withBackwardsAccelerationSpeed(0.6)
+                .withBackwardsAccelerationSpeed(0.15)
                 .withSeatCount(5)
                 .withSeatPositions(Arrays.asList(
                         new Vector(1,-0.5,1),
@@ -91,6 +77,11 @@ public final class Vehicles extends JavaPlugin {
                 .withGripFactor(0.78921)
                 .withMaxRedRPMTicks(45)
                 .build());
+
+        registerKeys();
+        registerPacketListeners();
+        registerCommands();
+        registerListeners(new OnPlayerEntityInteract(), new OnPlayerQuit());
     }
 
     private void registerPacketListeners() {
@@ -106,5 +97,13 @@ public final class Vehicles extends JavaPlugin {
         for (Listener listener : listeners) {
             pluginManager.registerEvents(listener, this);
         }
+    }
+
+    private void registerKeys() {
+        uuidOfCenterAsKey = new NamespacedKey(this, "uuidOfCenterAS");
+        uuidOfChildrenAsKey = new NamespacedKey(this, "uuidOfChildrenAS");
+        isSteeringSeatKey = new NamespacedKey(this, "isSteeringSeat");
+        isBackBoundingBoxKey = new NamespacedKey(this, "isBackBoundingBox");
+        vehicleNameKey = new NamespacedKey(this, "vehicleName");
     }
 }

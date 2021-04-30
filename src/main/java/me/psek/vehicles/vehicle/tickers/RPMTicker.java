@@ -10,35 +10,48 @@ import java.util.UUID;
 
 public class RPMTicker {
     private static final HashMap<UUID, SpawnedCarData> IN_RED_RPM_ZONE = new HashMap<>();
+    private static final HashMap<UUID, SpawnedCarData> IN_RED_RPM_ZONE_NOT_GASSING = new HashMap<>();
 
     static {
-        Bukkit.getScheduler().runTaskTimerAsynchronously(Vehicles.getPluginInstance(), RPMTicker::checkRPMs, 0, 1);
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Vehicles.getPluginInstance(), RPMTicker::check, 0, 1);
     }
 
-    private static void checkRPMs() {
+    private static void check() {
         if (IN_RED_RPM_ZONE.size() > 0) {
             for (SpawnedCarData inRedZoneCar : IN_RED_RPM_ZONE.values()) {
                 CarData carData = inRedZoneCar.getCarData();
                 if (inRedZoneCar.getCurrentRPM() >= carData.getRPMs().get(2)) {
-                    inRedZoneCar.setTicksInRedZone(inRedZoneCar.getTicksInRedZone() + 1);
-                    if (inRedZoneCar.getTicksInRedZone() > carData.getMaxRedRPMTicks()) {
-                        System.out.println("kaboom car kaduk now brrr better get new car kekw");
+                    if (inRedZoneCar.getCurrentRPM() < carData.getRPMs().get(0)) {
+                        inRedZoneCar.setTicksInRedZone(inRedZoneCar.getTicksInRedZone() + 1);
+                        if (inRedZoneCar.getTicksInRedZone() > carData.getMaxRedRPMTicks()) {
+                            System.out.println("kaboom car kaduk now brrr better get new car kekw");
+                        }
                     }
+                }
+            }
+        }
+        if (IN_RED_RPM_ZONE_NOT_GASSING.size() > 0) {
+            for (SpawnedCarData inRedZoneCar : IN_RED_RPM_ZONE_NOT_GASSING.values()) {
+                int ticksInRedZone = Math.max(inRedZoneCar.getTicksInRedZone() - 1, 0);
+                if (ticksInRedZone > 0) {
+                    inRedZoneCar.setTicksInRedZone(ticksInRedZone);
                 } else {
-                    int ticksInRedZone = Math.max(inRedZoneCar.getTicksInRedZone() - 1, 0);
-                    if (ticksInRedZone > 0) {
-                        inRedZoneCar.setTicksInRedZone(ticksInRedZone);
-                    } else {
-                        IN_RED_RPM_ZONE.remove(inRedZoneCar.getEntities().get(0).getUniqueId());
-                    }
+                    IN_RED_RPM_ZONE_NOT_GASSING.remove(inRedZoneCar.getEntities().get(0).getUniqueId());
                 }
             }
         }
     }
 
-    public static void addRedRPM(UUID uuid, SpawnedCarData spawnedCarData) {
+    public static void add(SpawnedCarData spawnedCarData) {
+        UUID uuid = spawnedCarData.getEntities().get(0).getUniqueId();
         if (!IN_RED_RPM_ZONE.containsKey(uuid)) {
             IN_RED_RPM_ZONE.put(uuid, spawnedCarData);
         }
+    }
+
+    public static void remove(SpawnedCarData spawnedCarData) {
+        UUID uuid = spawnedCarData.getEntities().get(0).getUniqueId();
+        IN_RED_RPM_ZONE.remove(uuid);
+        IN_RED_RPM_ZONE_NOT_GASSING.put(uuid, spawnedCarData);
     }
 }
