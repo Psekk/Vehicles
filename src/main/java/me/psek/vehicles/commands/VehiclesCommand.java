@@ -23,7 +23,6 @@ public class VehiclesCommand implements CommandExecutor {
             case ("test"):
                 if (CarData.ALL_REGISTERED_CARS.containsKey(args[1].toLowerCase())) {
                     Actions.spawn(((Player) sender).getLocation(), args[1]);
-
                 }
         }
         return false;

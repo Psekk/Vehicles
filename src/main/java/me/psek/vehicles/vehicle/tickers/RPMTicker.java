@@ -2,7 +2,7 @@ package me.psek.vehicles.vehicle.tickers;
 
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.vehicle.builders.CarData;
-import me.psek.vehicles.vehicle.builders.SpawnedCarData;
+import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import org.bukkit.Bukkit;
 
 import java.util.HashMap;

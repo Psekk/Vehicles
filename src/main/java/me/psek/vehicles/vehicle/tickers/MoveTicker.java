@@ -3,14 +3,15 @@ package me.psek.vehicles.vehicle.tickers;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.nms.INms;
 import me.psek.vehicles.nms.Mediator;
-import me.psek.vehicles.vehicle.builders.SpawnedCarData;
+import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.UUID;
+
+import static me.psek.vehicles.vehicle.Actions.fixPositions;
+import static me.psek.vehicles.vehicle.Actions.moveVehicleForwards;
 
 public class MoveTicker {
     private static final INms NMS_INSTANCE = Mediator.getNMS();
@@ -24,37 +25,35 @@ public class MoveTicker {
     private static void check() {
         if (NOT_GASSING.size() > 0) {
             for (SpawnedCarData spawnedCarData : NOT_GASSING.values()) {
+                if (!spawnedCarData.isMoving()) {
+                    remove(spawnedCarData);
+                    continue;
+                }
                 if (spawnedCarData.isControlling()) {
                     continue;
                 }
                 double currentSpeed = spawnedCarData.getCurrentSpeed();
-                if (currentSpeed > 0) {
-                    currentSpeed = Math.max(0, currentSpeed - 0.0065);
-                    spawnedCarData.setCurrentSpeed(currentSpeed);
-                    List<Entity> entityList = spawnedCarData.getEntities();
-                    double yaw = entityList.get(0).getLocation().getYaw();
-                    double vectorX = Math.sin(yaw) * currentSpeed;
-                    double vectorZ = Math.cos(yaw) * currentSpeed;
-
-                    for (Entity entity : entityList) {
-                        entity.setGravity(true);
-                        NMS_INSTANCE.setNoClip(entity, true);
-                        entity.setVelocity(new Vector(vectorX, 0, vectorZ));
-                    }
-                } else {
+                if (currentSpeed <= 0) {
                     for (Entity entity : spawnedCarData.getEntities()) {
                         entity.setGravity(false);
                     }
+                    remove(spawnedCarData);
+                    continue;
                 }
+                double newSpeed = Math.max(0, currentSpeed - 0.0065);
+                moveVehicleForwards(spawnedCarData, newSpeed);
+                fixPositions(spawnedCarData);
             }
         }
     }
 
     public static void add(SpawnedCarData spawnedCarData) {
+        spawnedCarData.setMoving(true);
         NOT_GASSING.put(spawnedCarData.getEntities().get(0).getUniqueId(), spawnedCarData);
     }
 
-    public static void remove(UUID uuid) {
-        NOT_GASSING.remove(uuid);
+    public static void remove(SpawnedCarData spawnedCarData) {
+        spawnedCarData.setMoving(false);
+        NOT_GASSING.remove(spawnedCarData.getEntities().get(0).getUniqueId());
     }
 }

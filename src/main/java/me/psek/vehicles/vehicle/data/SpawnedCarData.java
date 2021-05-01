@@ -1,7 +1,8 @@
-package me.psek.vehicles.vehicle.builders;
+package me.psek.vehicles.vehicle.data;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.psek.vehicles.vehicle.builders.CarData;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 
@@ -29,9 +30,6 @@ public class SpawnedCarData {
      * 2-size: rest of seats
      */
     @Getter
-    @Setter
-    private List<Location> entityLocations;
-    @Getter
     private final List<Entity> entities;
     @Getter
     @Setter
@@ -42,10 +40,12 @@ public class SpawnedCarData {
     @Getter
     @Setter
     private boolean handBrake;
+    @Getter
+    @Setter
+    private boolean isMoving;
 
-    public SpawnedCarData(CarData carData, List<Location> entityLocations, double cSpeed, double cRPM, List<Entity> entities, int currentGear) {
+    public SpawnedCarData(CarData carData, double cSpeed, double cRPM, List<Entity> entities, int currentGear) {
         this.carData = carData;
-        this.entityLocations = entityLocations;
         this.currentSpeed = cSpeed;
         this.currentRPM = cRPM;
         this.entities = entities;

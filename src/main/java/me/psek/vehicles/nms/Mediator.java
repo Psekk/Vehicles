@@ -13,10 +13,13 @@ public class Mediator {
         switch (getNMSVersion()) {
             case "v1_16_R3":
                 nms = new V1_16_R3();
+                break;
             case "v1_15_R1":
                 nms = new V1_15_R1();
+                break;
             case "v1_14_R1":
                 nms = new V1_14_R1();
+                break;
         }
     }
 

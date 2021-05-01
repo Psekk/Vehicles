@@ -7,7 +7,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.vehicle.Actions;
 import me.psek.vehicles.vehicle.builders.CarData;
-import me.psek.vehicles.vehicle.builders.SpawnedCarData;
+import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import me.psek.vehicles.utils.Utils;
 import org.bukkit.Bukkit;

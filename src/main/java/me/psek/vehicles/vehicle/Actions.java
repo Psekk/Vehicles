@@ -5,7 +5,7 @@ import me.psek.vehicles.nms.INms;
 import me.psek.vehicles.nms.Mediator;
 import me.psek.vehicles.utils.Utils;
 import me.psek.vehicles.vehicle.builders.CarData;
-import me.psek.vehicles.vehicle.builders.SpawnedCarData;
+import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import me.psek.vehicles.vehicle.events.VehicleSteerEvent;
 import me.psek.vehicles.vehicle.tickers.MoveTicker;
@@ -46,8 +46,6 @@ public class Actions {
         Vector[] seatVectors = carData.getSeatPositions().toArray(new Vector[0]);
         int steeringSeatIndex = carData.getSteeringSeatIndex();
         String[] childUUIDS = new String[carData.getSeatCount() + 2];
-        List<Location> armorStandLocations = new ArrayList<>();
-        armorStandLocations.add(centerArmorStand.getLocation());
         for (int i = 0; i < carData.getSeatCount(); i++) {
             ArmorStand armorStand = location.getWorld().spawn(location.clone().add(seatVectors[i]), ArmorStand.class);
             armorStand.setGravity(false);
@@ -56,7 +54,6 @@ public class Actions {
             armorStand.setVisible(true);
             armorStand.setBasePlate(false);
             childUUIDS[i] = armorStand.getUniqueId().toString();
-            armorStandLocations.add(armorStand.getLocation());
             entities.add(armorStand);
             if (i == steeringSeatIndex) {
                 armorStand.setCustomName("steerer");
@@ -69,13 +66,11 @@ public class Actions {
         centerArmorStand.getPersistentDataContainer().set(Vehicles.uuidOfChildrenAsKey, PersistentDataType.STRING, stringChildUUIDS);
 
         SpawnedCarData spawnedCarData = new SpawnedCarData(carData,
-                armorStandLocations,
                 0D,
                 75D,
                 entities,
                 1);
         SpawnedCarData.ALL_SPAWNED_CAR_DATA.put(centerArmorStand.getUniqueId(), spawnedCarData);
-        MoveTicker.add(spawnedCarData);
     }
 
     public static boolean tryShiftUp(SpawnedCarData spawnedCarData) {
@@ -131,25 +126,24 @@ public class Actions {
                     //todo maybe add sounds ;)
                     return;
                 }
-                Vector currentVelocityVector = spawnedCarData.getEntities().get(0).getVelocity();
-                if (spawnedCarData.getCurrentSpeed() >= 0) {
-                    double RPMIncrease = carData.getRPMIncreasePerGear().get(currentGear - 1);
-                    spawnedCarData.setCurrentRPM(spawnedCarData.getCurrentRPM() + RPMIncrease);
-                    if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
-                        RPMTicker.add(spawnedCarData);
-                    }
-
-                    double accelerationAmount = carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(spawnedCarData.getCurrentGear() - 1) / 10;
-                    Vector modifiedCurrentVector = currentVelocityVector.setZ(currentVelocityVector.getZ() + accelerationAmount);
-                    spawnedCarData.setCurrentSpeed(spawnedCarData.getCurrentSpeed() + accelerationAmount);
-                    for (Entity seatEntity : spawnedCarData.getEntities()) {
-                        seatEntity.setGravity(true);
-                        NMS_INSTANCE.setNoClip(seatEntity, true);
-                        seatEntity.setVelocity(modifiedCurrentVector);
-                    }
-                } else {
+                if (spawnedCarData.getCurrentSpeed() < 0) {
                     System.out.println("braking");
+                    return;
                 }
+                if (!spawnedCarData.isMoving()) {
+                    MoveTicker.add(spawnedCarData);
+                }
+                double RPMIncrease = carData.getRPMIncreasePerGear().get(spawnedCarData.getCurrentGear()) - 1;
+                spawnedCarData.setCurrentRPM(spawnedCarData.getCurrentRPM() + RPMIncrease);
+                if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
+                    RPMTicker.add(spawnedCarData);
+                }
+
+                double newSpeed = spawnedCarData.getCurrentSpeed() + carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(currentGear - 1);
+                spawnedCarData.setControlling(true);
+                moveVehicleForwards(spawnedCarData, newSpeed);
+                fixPositions(spawnedCarData);
+                spawnedCarData.setControlling(false);
             //backwards
             case 1:
 
@@ -160,5 +154,29 @@ public class Actions {
             case 3:
         }
         spawnedCarData.setControlling(false);
+    }
+
+    public static void moveVehicleForwards(SpawnedCarData spawnedCarData, double speed) {
+        spawnedCarData.setCurrentSpeed(speed);
+        List<Entity> entityList = spawnedCarData.getEntities().subList(1, spawnedCarData.getEntities().size());
+        double yaw = entityList.get(0).getLocation().getYaw();
+        double vectorX = Math.sin(yaw) * speed;
+        double vectorZ = Math.cos(yaw) * speed;
+
+        for (Entity entity : entityList) {
+            entity.setGravity(true);
+            NMS_INSTANCE.setNoClip(entity, true);
+            entity.setVelocity(new Vector(vectorX, 0, vectorZ));
+        }
+    }
+
+    //todo make it work with rotations (sin (x), cos (z)) & do proper testing
+    public static void fixPositions(SpawnedCarData spawnedCarData) {
+        /*Vector centerVector = spawnedCarData.getEntities().get(0).getLocation().toVector();
+        for (Entity entity : spawnedCarData.getEntities().subList(1, spawnedCarData.getEntities().size())) {
+            Vector requiredVector = centerVector.clone().subtract(entity.getLocation().toVector().clone());
+            entity.setVelocity(requiredVector);
+        }*/
+        //bug -> moves to center and prevents movement
     }
 }
