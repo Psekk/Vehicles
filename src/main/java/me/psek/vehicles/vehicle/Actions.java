@@ -35,8 +35,9 @@ public class Actions {
 
         ArmorStand centerArmorStand = Objects.requireNonNull(location.getWorld()).spawn(location, ArmorStand.class);
         centerArmorStand.setGravity(false);
+        NMS_INSTANCE.setNoClip(centerArmorStand, true);
         centerArmorStand.setInvulnerable(true);
-        centerArmorStand.setVisible(false);
+        centerArmorStand.setVisible(true);
         centerArmorStand.setBasePlate(false);
         centerArmorStand.setCustomName("center seat");
 
@@ -49,6 +50,7 @@ public class Actions {
         for (int i = 0; i < carData.getSeatCount(); i++) {
             ArmorStand armorStand = location.getWorld().spawn(location.clone().add(seatVectors[i]), ArmorStand.class);
             armorStand.setGravity(false);
+            NMS_INSTANCE.setNoClip(armorStand, true);
             armorStand.getPersistentDataContainer().set(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY, centerArmorStandUUID);
             armorStand.setInvulnerable(true);
             armorStand.setVisible(true);
@@ -138,12 +140,9 @@ public class Actions {
                 if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
                     RPMTicker.add(spawnedCarData);
                 }
-
-                double newSpeed = spawnedCarData.getCurrentSpeed() + carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(currentGear - 1);
-                spawnedCarData.setControlling(true);
-                moveVehicleForwards(spawnedCarData, newSpeed);
-                fixPositions(spawnedCarData);
-                spawnedCarData.setControlling(false);
+                double newSpeed = spawnedCarData.getCurrentSpeed() + carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(currentGear - 1) / 10;
+                moveVehicle(spawnedCarData, newSpeed);
+                spawnedCarData.setCurrentSpeed(newSpeed);
             //backwards
             case 1:
 
@@ -156,27 +155,27 @@ public class Actions {
         spawnedCarData.setControlling(false);
     }
 
-    public static void moveVehicleForwards(SpawnedCarData spawnedCarData, double speed) {
-        spawnedCarData.setCurrentSpeed(speed);
-        List<Entity> entityList = spawnedCarData.getEntities().subList(1, spawnedCarData.getEntities().size());
-        double yaw = entityList.get(0).getLocation().getYaw();
-        double vectorX = Math.sin(yaw) * speed;
-        double vectorZ = Math.cos(yaw) * speed;
-
-        for (Entity entity : entityList) {
+    public static void moveVehicle(SpawnedCarData spawnedCarData, double distance) {
+        List<Entity> entities = spawnedCarData.getEntities();
+        Vector speedVector = new Vector (Math.sin(entities.get(0).getLocation().getYaw()) * distance, 0, Math.cos(entities.get(0).getLocation().getYaw()) * distance);
+        for (Entity entity : entities) {
             entity.setGravity(true);
-            NMS_INSTANCE.setNoClip(entity, true);
-            entity.setVelocity(new Vector(vectorX, 0, vectorZ));
+            entity.setVelocity(speedVector);
         }
+        fixVehicleIfNecessary(spawnedCarData);
     }
 
-    //todo make it work with rotations (sin (x), cos (z)) & do proper testing
-    public static void fixPositions(SpawnedCarData spawnedCarData) {
-        /*Vector centerVector = spawnedCarData.getEntities().get(0).getLocation().toVector();
-        for (Entity entity : spawnedCarData.getEntities().subList(1, spawnedCarData.getEntities().size())) {
-            Vector requiredVector = centerVector.clone().subtract(entity.getLocation().toVector().clone());
-            entity.setVelocity(requiredVector);
-        }*/
-        //bug -> moves to center and prevents movement
+    private static void fixVehicleIfNecessary(SpawnedCarData spawnedCarData) {
+        List<Vector> seatPositions = spawnedCarData.getCarData().getSeatPositions();
+        List<Entity> entities = spawnedCarData.getEntities();
+        Entity center = entities.get(0);
+        for (int i = 0; i < seatPositions.size(); i++) {
+            Entity entity = entities.get(i + 1);
+            Vector requiredVector = center.getLocation().toVector().add(seatPositions.get(i)).subtract(entity.getLocation().toVector());
+            if (requiredVector.getX() > 0.075 || requiredVector.getY() > 0.075 || requiredVector.getZ() > 0.075) {
+                entity.setVelocity(requiredVector);
+                System.out.println("adjusting -> " + requiredVector);
+            }
+        }
     }
 }

@@ -4,7 +4,6 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import lombok.Getter;
 import me.psek.vehicles.listeners.OnPlayerQuit;
-import me.psek.vehicles.nms.Mediator;
 import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.listeners.OnPlayerEntityInteract;
@@ -16,7 +15,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
-import java.util.logging.Level;
 
 public final class Vehicles extends JavaPlugin {
     @Getter
@@ -40,9 +38,9 @@ public final class Vehicles extends JavaPlugin {
         CarData.ALL_REGISTERED_CARS.put("lada", new CarData.Builder()
                 .withName("lada")
                 .withId(0)
-                .withAccelerationSpeed(0.1)
-                .withBrakingSpeed(0.3)
-                .withBackwardsAccelerationSpeed(0.05)
+                .withAccelerationSpeed(0.5)
+                .withBrakingSpeed(0.01)
+                .withBackwardsAccelerationSpeed(0.0025)
                 .withSeatCount(5)
                 .withSeatPositions(Arrays.asList(
                         new Vector(1,-0.5,1),

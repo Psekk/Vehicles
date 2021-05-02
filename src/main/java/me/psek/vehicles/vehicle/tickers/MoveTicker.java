@@ -1,8 +1,6 @@
 package me.psek.vehicles.vehicle.tickers;
 
 import me.psek.vehicles.Vehicles;
-import me.psek.vehicles.nms.INms;
-import me.psek.vehicles.nms.Mediator;
 import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -10,11 +8,9 @@ import org.bukkit.entity.Entity;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static me.psek.vehicles.vehicle.Actions.fixPositions;
-import static me.psek.vehicles.vehicle.Actions.moveVehicleForwards;
+import static me.psek.vehicles.vehicle.Actions.*;
 
 public class MoveTicker {
-    private static final INms NMS_INSTANCE = Mediator.getNMS();
     private static final HashMap<UUID, SpawnedCarData> NOT_GASSING = new HashMap<>();
 
     static {
@@ -40,9 +36,10 @@ public class MoveTicker {
                     remove(spawnedCarData);
                     continue;
                 }
-                double newSpeed = Math.max(0, currentSpeed - 0.0065);
-                moveVehicleForwards(spawnedCarData, newSpeed);
-                fixPositions(spawnedCarData);
+                double newSpeed = Math.max(0, currentSpeed - 0.0075);
+                spawnedCarData.setCurrentSpeed(newSpeed);
+                moveVehicle(spawnedCarData, newSpeed);
+                Bukkit.broadcastMessage(newSpeed + "");
             }
         }
     }
