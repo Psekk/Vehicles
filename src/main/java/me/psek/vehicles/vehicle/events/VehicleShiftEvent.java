@@ -5,6 +5,7 @@ import lombok.Setter;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 public class VehicleShiftEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
@@ -13,12 +14,20 @@ public class VehicleShiftEvent extends Event implements Cancellable {
     @Setter
     private boolean isCancelled;
 
-    @Getter
     @Setter
-    private int shiftDirection;
+    @Getter
+    private int newGear;
+
+    @Getter
+    private final int previousGear;
 
     @Override
-    public HandlerList getHandlers() {
+    public final @NotNull HandlerList getHandlers() {
         return handlers;
+    }
+
+    public VehicleShiftEvent(int previousGear, int newGear) {
+        this.previousGear = previousGear;
+        this.newGear = newGear;
     }
 }

@@ -81,7 +81,7 @@ public final class Vehicles extends JavaPlugin {
         registerKeys();
         registerPacketListeners();
         registerCommands();
-        registerListeners(new OnPlayerEntityInteract(), new OnPlayerQuit());
+        registerListeners(new OnPlayerEntityInteract(), new OnPlayerQuit(), new OnPlayerEntityInteract());
     }
 
     private void registerPacketListeners() {

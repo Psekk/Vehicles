@@ -75,35 +75,13 @@ public class Actions {
         SpawnedCarData.ALL_SPAWNED_CAR_DATA.put(centerArmorStand.getUniqueId(), spawnedCarData);
     }
 
-    public static boolean tryShiftUp(SpawnedCarData spawnedCarData) {
+    public static boolean tryShift(SpawnedCarData spawnedCarData, int gear) {
         int currentGear = spawnedCarData.getCurrentGear();
         if (currentGear++ <= spawnedCarData.getCarData().getGearCount()) {
             spawnedCarData.setCurrentGear(currentGear);
             return true;
         }
         return false;
-    }
-
-    public static boolean tryShiftDown(SpawnedCarData spawnedCarData) {
-        int currentGear = spawnedCarData.getCurrentGear();
-        if (currentGear-- >= 0) {
-            spawnedCarData.setCurrentGear(currentGear);
-            return true;
-        }
-        return false;
-    }
-
-    public static boolean tryPutNeutral(SpawnedCarData spawnedCarData) {
-        spawnedCarData.setCurrentGear(0);
-        return true;
-    }
-
-    private static CarData getCarData(Entity vehicleEntity) {
-        PersistentDataContainer persistentDataContainer = vehicleEntity.getPersistentDataContainer();
-        if (persistentDataContainer.has(Vehicles.vehicleNameKey, PersistentDataType.STRING)) {
-            return CarData.ALL_REGISTERED_CARS.get(persistentDataContainer.get(Vehicles.vehicleNameKey, PersistentDataType.STRING));
-        }
-        return null;
     }
 
     public static void toggleHandBrake(SpawnedCarData spawnedCarData) {

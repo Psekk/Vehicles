@@ -10,16 +10,19 @@ import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import me.psek.vehicles.utils.Utils;
+import me.psek.vehicles.vehicle.events.VehicleSteerEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.PluginManager;
 
 import java.util.Objects;
 
 
 public class OnVehicleSteerPacket {
     private static final Vehicles PLUGIN_INSTANCE = Vehicles.getPluginInstance();
+    private static final PluginManager PLUGIN_MANAGER = Bukkit.getPluginManager();
 
     static {
         Vehicles.getProtocolManager().addPacketListener(
@@ -59,6 +62,13 @@ public class OnVehicleSteerPacket {
                                             .get(Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().get(Vehicles.vehicleNameKey, PersistentDataType.STRING));
                                     SpawnedCarData spawnedCarData = SpawnedCarData.ALL_SPAWNED_CAR_DATA
                                             .get(Utils.bytesAsUuid(vehicleEntity.getPersistentDataContainer().get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
+
+                                    VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData,direction);
+                                    PLUGIN_MANAGER.callEvent(vehicleSteerEvent);
+                                    if (vehicleSteerEvent.isCancelled()) {
+                                        return;
+                                    }
+
                                     VehicleSteerDirection finalDirection = direction;
                                     Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> Actions.steerVehicle(spawnedCarData, finalDirection));
                                 }
