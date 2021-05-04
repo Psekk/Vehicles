@@ -1,5 +1,6 @@
 package me.psek.vehicles.vehicle.tickers;
 
+import lombok.Getter;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import org.bukkit.Bukkit;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import static me.psek.vehicles.vehicle.Actions.*;
 
 public class MoveTicker {
+    //todo add gc when the vehicle gets destroyed for some reason
     private static final HashMap<UUID, SpawnedCarData> NOT_GASSING = new HashMap<>();
 
     static {
@@ -28,7 +30,13 @@ public class MoveTicker {
                 if (spawnedCarData.isControlling()) {
                     continue;
                 }
-                double currentSpeed = spawnedCarData.getCurrentSpeed();
+                double handbrakeAmount = 0D;
+                if (spawnedCarData.isHandBrake()) {
+                    //todo also take grip factor into account cus le braking BUT HARD and NO TIRE ROTATION
+                    handbrakeAmount = 0.1;
+
+                }
+                double currentSpeed = spawnedCarData.getCurrentSpeed() - handbrakeAmount;
                 if (currentSpeed <= 0) {
                     for (Entity entity : spawnedCarData.getEntities()) {
                         entity.setGravity(false);

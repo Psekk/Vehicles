@@ -3,6 +3,7 @@ package me.psek.vehicles;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import lombok.Getter;
+import me.psek.vehicles.listeners.OnPlayerItemHeldEvent;
 import me.psek.vehicles.listeners.OnPlayerQuit;
 import me.psek.vehicles.vehicle.builders.CarData;
 import me.psek.vehicles.commands.VehiclesCommand;
@@ -27,6 +28,7 @@ public final class Vehicles extends JavaPlugin {
     public static NamespacedKey isSteeringSeatKey;
     public static NamespacedKey isBackBoundingBoxKey;
     public static NamespacedKey vehicleNameKey;
+    public static NamespacedKey vehicleSteerAngleKey;
 
     @Override
     public void onEnable() {
@@ -57,7 +59,7 @@ public final class Vehicles extends JavaPlugin {
                         6000,
                         7500
                 ))
-                .withShiftTime(15)
+                .withShiftTime(6*20)
                 .withSteeringSeatIndex(0)
                 .withRPMIncreasePerGear(Arrays.asList(
                         25D,
@@ -81,7 +83,7 @@ public final class Vehicles extends JavaPlugin {
         registerKeys();
         registerPacketListeners();
         registerCommands();
-        registerListeners(new OnPlayerEntityInteract(), new OnPlayerQuit(), new OnPlayerEntityInteract());
+        registerListeners(new OnPlayerEntityInteract(), new OnPlayerQuit(), new OnPlayerItemHeldEvent());
     }
 
     private void registerPacketListeners() {
@@ -106,5 +108,6 @@ public final class Vehicles extends JavaPlugin {
         isSteeringSeatKey = new NamespacedKey(this, "isSteeringSeat");
         isBackBoundingBoxKey = new NamespacedKey(this, "isBackBoundingBox");
         vehicleNameKey = new NamespacedKey(this, "vehicleName");
+        vehicleSteerAngleKey = new NamespacedKey(this, "vehicleSteerAngle");
     }
 }

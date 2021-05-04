@@ -43,6 +43,9 @@ public class SpawnedCarData {
     @Getter
     @Setter
     private boolean isMoving;
+    @Getter
+    @Setter
+    private int lastTimeShifted = 0;
 
     public SpawnedCarData(CarData carData, double cSpeed, double cRPM, List<Entity> entities, int currentGear) {
         this.carData = carData;

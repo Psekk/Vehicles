@@ -1,6 +1,7 @@
 package me.psek.vehicles.listeners;
 
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.vehicle.packetlisteners.OnVehicleSteerPacket;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,5 +20,8 @@ public class OnPlayerQuit implements Listener {
                 vehicleEntity.removePassenger(event.getPlayer());
             }
         }
+
+        //some GC
+        OnVehicleSteerPacket.remove(event.getPlayer());
     }
 }

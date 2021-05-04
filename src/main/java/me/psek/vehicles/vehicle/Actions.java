@@ -12,6 +12,7 @@ import me.psek.vehicles.vehicle.tickers.MoveTicker;
 import me.psek.vehicles.vehicle.tickers.RPMTicker;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -35,11 +36,10 @@ public class Actions {
 
         ArmorStand centerArmorStand = Objects.requireNonNull(location.getWorld()).spawn(location, ArmorStand.class);
         centerArmorStand.setGravity(false);
-        NMS_INSTANCE.setNoClip(centerArmorStand, true);
         centerArmorStand.setInvulnerable(true);
         centerArmorStand.setVisible(true);
         centerArmorStand.setBasePlate(false);
-        centerArmorStand.setCustomName("center seat");
+        NMS_INSTANCE.setNoClip(centerArmorStand, true);
 
         List<Entity> entities = new ArrayList<>();
         entities.add(centerArmorStand);
@@ -50,12 +50,13 @@ public class Actions {
         for (int i = 0; i < carData.getSeatCount(); i++) {
             ArmorStand armorStand = location.getWorld().spawn(location.clone().add(seatVectors[i]), ArmorStand.class);
             armorStand.setGravity(false);
-            NMS_INSTANCE.setNoClip(armorStand, true);
             armorStand.getPersistentDataContainer().set(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY, centerArmorStandUUID);
             armorStand.setInvulnerable(true);
             armorStand.setVisible(true);
             armorStand.setBasePlate(false);
             childUUIDS[i] = armorStand.getUniqueId().toString();
+            //todo noclip not remaining/working
+            NMS_INSTANCE.setNoClip(armorStand, true);
             entities.add(armorStand);
             if (i == steeringSeatIndex) {
                 armorStand.setCustomName("steerer");
@@ -75,13 +76,19 @@ public class Actions {
         SpawnedCarData.ALL_SPAWNED_CAR_DATA.put(centerArmorStand.getUniqueId(), spawnedCarData);
     }
 
+    private static final World WORLD = Bukkit.getWorlds().get(0);
     public static boolean tryShift(SpawnedCarData spawnedCarData, int gear) {
-        int currentGear = spawnedCarData.getCurrentGear();
-        if (currentGear++ <= spawnedCarData.getCarData().getGearCount()) {
-            spawnedCarData.setCurrentGear(currentGear);
-            return true;
+        CarData carData = spawnedCarData.getCarData();
+        if (gear > carData.getGearCount()) {
+            return false;
         }
-        return false;
+        if (spawnedCarData.getLastTimeShifted() > WORLD.getFullTime() + carData.getShiftTime()) {
+            System.out.println("cant shift yet cus shiftime -> " + WORLD.getFullTime());
+            return false;
+        }
+        //todo maybe add stalling
+        spawnedCarData.setCurrentGear(gear);
+        return true;
     }
 
     public static void toggleHandBrake(SpawnedCarData spawnedCarData) {
@@ -89,9 +96,15 @@ public class Actions {
     }
 
     public static void steerVehicle(SpawnedCarData spawnedCarData, VehicleSteerDirection direction) {
+        if (spawnedCarData.isHandBrake()) {
+            return;
+        }
         int currentGear = spawnedCarData.getCurrentGear();
+        if (currentGear == 0) {
+            updateRPM(spawnedCarData);
+            return;
+        }
         CarData carData = spawnedCarData.getCarData();
-
         VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData, direction);
         PLUGIN_MANAGER.callEvent(vehicleSteerEvent);
         if (vehicleSteerEvent.isCancelled()) {
@@ -102,10 +115,6 @@ public class Actions {
         switch (direction.directionValue) {
             //forwards
             case 0:
-                if (currentGear == 0) {
-                    //todo maybe add sounds ;)
-                    return;
-                }
                 if (spawnedCarData.getCurrentSpeed() < 0) {
                     System.out.println("braking");
                     return;
@@ -113,29 +122,33 @@ public class Actions {
                 if (!spawnedCarData.isMoving()) {
                     MoveTicker.add(spawnedCarData);
                 }
-                double RPMIncrease = carData.getRPMIncreasePerGear().get(spawnedCarData.getCurrentGear()) - 1;
-                spawnedCarData.setCurrentRPM(spawnedCarData.getCurrentRPM() + RPMIncrease);
-                if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
-                    RPMTicker.add(spawnedCarData);
-                }
+                updateRPM(spawnedCarData);
                 double newSpeed = spawnedCarData.getCurrentSpeed() + carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(currentGear - 1) / 10;
                 moveVehicle(spawnedCarData, newSpeed);
                 spawnedCarData.setCurrentSpeed(newSpeed);
+                break;
             //backwards
             case 1:
 
-            //right
             case 2:
-
+                //todo use grip factor n shit (also include drifting cus cool)
+                Entity center = spawnedCarData.getEntities().get(0);
+                setAngle(center, Math.toDegrees(getAngle(center)) - 1.15);
+                break;
             //left
             case 3:
+                center = spawnedCarData.getEntities().get(0);
+                setAngle(center, Math.toDegrees(getAngle(center)) - 1.15);
+                break;
         }
         spawnedCarData.setControlling(false);
     }
 
     public static void moveVehicle(SpawnedCarData spawnedCarData, double distance) {
         List<Entity> entities = spawnedCarData.getEntities();
-        Vector speedVector = new Vector (Math.sin(entities.get(0).getLocation().getYaw()) * distance, 0, Math.cos(entities.get(0).getLocation().getYaw()) * distance);
+        //Vector speedVector = Utils.newRotatedVector(Math.toRadians(entities.get(0).getLocation().getYaw()), distance);
+        Vector speedVector = new Vector(0, 0, distance).rotateAroundY(getAngle(entities.get(0)));
+        System.out.println("moving ->" + speedVector);
         for (Entity entity : entities) {
             entity.setGravity(true);
             entity.setVelocity(speedVector);
@@ -143,17 +156,49 @@ public class Actions {
         fixVehicleIfNecessary(spawnedCarData);
     }
 
-    private static void fixVehicleIfNecessary(SpawnedCarData spawnedCarData) {
+    public static void fixVehicleIfNecessary(SpawnedCarData spawnedCarData) {
         List<Vector> seatPositions = spawnedCarData.getCarData().getSeatPositions();
         List<Entity> entities = spawnedCarData.getEntities();
         Entity center = entities.get(0);
+        Location centerLocation = center.getLocation();
+
+        Vector centerVector = centerLocation.toVector();
         for (int i = 0; i < seatPositions.size(); i++) {
             Entity entity = entities.get(i + 1);
-            Vector requiredVector = center.getLocation().toVector().add(seatPositions.get(i)).subtract(entity.getLocation().toVector());
+            Vector requiredVector = centerVector.clone().add(seatPositions.get(i)).subtract(entity.getLocation().toVector()).rotateAroundY(getAngle(center));
             if (requiredVector.getX() > 0.075 || requiredVector.getY() > 0.075 || requiredVector.getZ() > 0.075) {
                 entity.setVelocity(requiredVector);
                 System.out.println("adjusting -> " + requiredVector);
             }
         }
+    }
+
+    private static void updateRPM(SpawnedCarData spawnedCarData) {
+        CarData carData = spawnedCarData.getCarData();
+        double RPMIncrease = carData.getRPMIncreasePerGear().get(spawnedCarData.getCurrentGear() - 1);
+        spawnedCarData.setCurrentRPM(spawnedCarData.getCurrentRPM() + RPMIncrease);
+        if (spawnedCarData.getCurrentRPM() > carData.getRPMs().get(2)) {
+            RPMTicker.add(spawnedCarData);
+        }
+    }
+
+    /**
+     * @param centerArmorStand center entity of the vehicle
+     * @param angle angle must be in degrees
+     */
+    private static void setAngle(Entity centerArmorStand, double angle) {
+        centerArmorStand.getPersistentDataContainer().set(Vehicles.vehicleSteerAngleKey, PersistentDataType.DOUBLE, Math.toRadians(angle));
+    }
+
+    /**
+     * @param centerArmorStand center entity of the vehicle
+     * @return returns the angle in radians
+     */
+    @SuppressWarnings("ConstantConditions")
+    private static double getAngle(Entity centerArmorStand) {
+        PersistentDataContainer persistentDataContainer = centerArmorStand.getPersistentDataContainer();
+        return persistentDataContainer.has(Vehicles.vehicleSteerAngleKey, PersistentDataType.DOUBLE)
+                ? persistentDataContainer.get(Vehicles.vehicleSteerAngleKey, PersistentDataType.DOUBLE)
+                : Math.toRadians(0D);
     }
 }

@@ -12,19 +12,24 @@ import me.psek.vehicles.vehicle.enums.VehicleSteerDirection;
 import me.psek.vehicles.utils.Utils;
 import me.psek.vehicles.vehicle.events.VehicleSteerEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 
+import java.util.HashMap;
 import java.util.Objects;
 
 
 public class OnVehicleSteerPacket {
-    private static final Vehicles PLUGIN_INSTANCE = Vehicles.getPluginInstance();
-    private static final PluginManager PLUGIN_MANAGER = Bukkit.getPluginManager();
+    private final Vehicles PLUGIN_INSTANCE = Vehicles.getPluginInstance();
+    private final PluginManager PLUGIN_MANAGER = Bukkit.getPluginManager();
 
-    static {
+    private static final HashMap<Player, Long> LAST_TIME_JUMPED = new HashMap<>();
+    private final World WORLD = Bukkit.getWorlds().get(0);
+
+    public OnVehicleSteerPacket() {
         Vehicles.getProtocolManager().addPacketListener(
                 new PacketAdapter(Vehicles.getPluginInstance(), ListenerPriority.HIGHEST, PacketType.Play.Client.STEER_VEHICLE) {
                     @Override
@@ -35,12 +40,22 @@ public class OnVehicleSteerPacket {
 
                             if (event.getPacket().getBooleans().read(0)) {
                                 Player player = event.getPlayer();
-                                Entity vehicleEntity = player.getVehicle();
+                                Long lastTime = LAST_TIME_JUMPED.getOrDefault(player, 0L);
+                                if (lastTime + 15 > WORLD.getFullTime()) {
+                                    if (lastTime != 0) {
+                                        LAST_TIME_JUMPED.remove(player);
+                                    }
+                                    return;
+                                }
                                 SpawnedCarData spawnedCarData = SpawnedCarData.ALL_SPAWNED_CAR_DATA
-                                        .get(Utils.bytesAsUuid(Objects.requireNonNull(vehicleEntity)
+                                        .get(Utils.bytesAsUuid(Objects.requireNonNull(player.getVehicle())
                                         .getPersistentDataContainer()
                                         .get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
                                 Actions.toggleHandBrake(spawnedCarData);
+                                if (!LAST_TIME_JUMPED.containsKey(player)) {
+                                    LAST_TIME_JUMPED.put(player, WORLD.getFullTime());
+                                }
+                                return;
                             }
 
                             Player player = event.getPlayer();
@@ -64,17 +79,31 @@ public class OnVehicleSteerPacket {
                                             .get(Utils.bytesAsUuid(vehicleEntity.getPersistentDataContainer().get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
 
                                     VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData,direction);
-                                    PLUGIN_MANAGER.callEvent(vehicleSteerEvent);
+                                    Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> PLUGIN_MANAGER.callEvent(vehicleSteerEvent));
                                     if (vehicleSteerEvent.isCancelled()) {
                                         return;
                                     }
 
-                                    VehicleSteerDirection finalDirection = direction;
+                                    VehicleSteerDirection finalDirection = vehicleSteerEvent.getDirection();
                                     Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> Actions.steerVehicle(spawnedCarData, finalDirection));
                                 }
                             }
                         }
                     }
                 });
+    }
+
+    public static void put(Player player, Long fullTime) {
+        if (LAST_TIME_JUMPED.containsKey(player)) {
+            return;
+        }
+        LAST_TIME_JUMPED.put(player, fullTime);
+    }
+
+    public static void remove(Player player) {
+        if (!LAST_TIME_JUMPED.containsKey(player)) {
+            return;
+        }
+        LAST_TIME_JUMPED.remove(player);
     }
 }

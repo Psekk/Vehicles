@@ -29,6 +29,6 @@ public class VehicleSteerEvent extends Event implements Cancellable {
 
     public VehicleSteerEvent(CarData carData, VehicleSteerDirection direction) {
         this.carData = carData;
-        direction = VehicleSteerDirection.FORWARD;
+        this.direction = direction;
     }
 }
