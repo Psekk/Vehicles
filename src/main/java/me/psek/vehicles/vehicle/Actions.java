@@ -35,11 +35,12 @@ public class Actions {
         location.setPitch(0);
 
         ArmorStand centerArmorStand = Objects.requireNonNull(location.getWorld()).spawn(location, ArmorStand.class);
-        centerArmorStand.setGravity(false);
+        centerArmorStand.setGravity(true);
+        //todo fix weird noclip not working
+        NMS_INSTANCE.setNoClip(centerArmorStand, true);
         centerArmorStand.setInvulnerable(true);
         centerArmorStand.setVisible(true);
         centerArmorStand.setBasePlate(false);
-        NMS_INSTANCE.setNoClip(centerArmorStand, true);
 
         List<Entity> entities = new ArrayList<>();
         entities.add(centerArmorStand);
@@ -55,8 +56,6 @@ public class Actions {
             armorStand.setVisible(true);
             armorStand.setBasePlate(false);
             childUUIDS[i] = armorStand.getUniqueId().toString();
-            //todo noclip not remaining/working
-            NMS_INSTANCE.setNoClip(armorStand, true);
             entities.add(armorStand);
             if (i == steeringSeatIndex) {
                 armorStand.setCustomName("steerer");
@@ -110,8 +109,7 @@ public class Actions {
         if (vehicleSteerEvent.isCancelled()) {
             return;
         }
-
-        spawnedCarData.setControlling(true);
+        //todo figure out why u gassing has priority over steering (in the packets)
         switch (direction.directionValue) {
             //forwards
             case 0:
@@ -124,8 +122,10 @@ public class Actions {
                 }
                 updateRPM(spawnedCarData);
                 double newSpeed = spawnedCarData.getCurrentSpeed() + carData.getAccelerationSpeed() * carData.getAccelerationMultipliers().get(currentGear - 1) / 10;
+                spawnedCarData.setControlling(true);
                 moveVehicle(spawnedCarData, newSpeed);
                 spawnedCarData.setCurrentSpeed(newSpeed);
+                spawnedCarData.setControlling(false);
                 break;
             //backwards
             case 1:
@@ -133,15 +133,14 @@ public class Actions {
             case 2:
                 //todo use grip factor n shit (also include drifting cus cool)
                 Entity center = spawnedCarData.getEntities().get(0);
-                setAngle(center, Math.toDegrees(getAngle(center)) - 1.15);
+                setAngle(center, Math.toDegrees(getAngle(center)) - 1.5);
                 break;
             //left
             case 3:
                 center = spawnedCarData.getEntities().get(0);
-                setAngle(center, Math.toDegrees(getAngle(center)) - 1.15);
+                setAngle(center, Math.toDegrees(getAngle(center)) + 1.5);
                 break;
         }
-        spawnedCarData.setControlling(false);
     }
 
     public static void moveVehicle(SpawnedCarData spawnedCarData, double distance) {
@@ -150,6 +149,7 @@ public class Actions {
         Vector speedVector = new Vector(0, 0, distance).rotateAroundY(getAngle(entities.get(0)));
         System.out.println("moving ->" + speedVector);
         for (Entity entity : entities) {
+            NMS_INSTANCE.setNoClip(entity, true);
             entity.setGravity(true);
             entity.setVelocity(speedVector);
         }
@@ -167,6 +167,7 @@ public class Actions {
             Entity entity = entities.get(i + 1);
             Vector requiredVector = centerVector.clone().add(seatPositions.get(i)).subtract(entity.getLocation().toVector()).rotateAroundY(getAngle(center));
             if (requiredVector.getX() > 0.075 || requiredVector.getY() > 0.075 || requiredVector.getZ() > 0.075) {
+                NMS_INSTANCE.setNoClip(entity, true);
                 entity.setVelocity(requiredVector);
                 System.out.println("adjusting -> " + requiredVector);
             }
