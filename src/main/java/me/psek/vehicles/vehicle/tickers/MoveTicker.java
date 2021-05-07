@@ -19,7 +19,6 @@ public class MoveTicker {
         Bukkit.getScheduler().runTaskTimerAsynchronously(Vehicles.getPluginInstance(), MoveTicker::check, 1, 1);
     }
 
-    //todo fix lag dropping of y level and lag causing weird seat shifting (literal shifting after lag aswell)
     private static void check() {
         if (NOT_GASSING.size() > 0) {
             for (SpawnedCarData spawnedCarData : NOT_GASSING.values()) {

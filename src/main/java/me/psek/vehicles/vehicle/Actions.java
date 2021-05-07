@@ -35,8 +35,8 @@ public class Actions {
         location.setPitch(0);
 
         ArmorStand centerArmorStand = Objects.requireNonNull(location.getWorld()).spawn(location, ArmorStand.class);
-        centerArmorStand.setGravity(true);
-        //todo fix weird noclip not working
+        centerArmorStand.setGravity(false);
+        //todo fix weird noClip not working
         NMS_INSTANCE.setNoClip(centerArmorStand, true);
         centerArmorStand.setInvulnerable(true);
         centerArmorStand.setVisible(true);
@@ -109,7 +109,6 @@ public class Actions {
         if (vehicleSteerEvent.isCancelled()) {
             return;
         }
-        //todo figure out why u gassing has priority over steering (in the packets)
         switch (direction.directionValue) {
             //forwards
             case 0:

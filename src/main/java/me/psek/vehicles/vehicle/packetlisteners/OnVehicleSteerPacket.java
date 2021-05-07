@@ -61,31 +61,40 @@ public class OnVehicleSteerPacket {
                             Player player = event.getPlayer();
                             if (Utils.canDrive(player)) {
                                 Entity vehicleEntity = event.getPlayer().getVehicle();
-                                VehicleSteerDirection direction = null;
-                                if (forwardsValue > 0) {
-                                    direction = VehicleSteerDirection.FORWARD;
-                                } else if (forwardsValue < 0){
-                                    direction = VehicleSteerDirection.BACKWARDS;
-                                } else if (sidewaysValue < 0) {
-                                    direction = VehicleSteerDirection.RIGHT;
+
+                                VehicleSteerDirection sidewaysDirection = null;
+                                if (sidewaysValue < 0) {
+                                    sidewaysDirection = VehicleSteerDirection.RIGHT;
                                 } else if (sidewaysValue > 0) {
-                                    direction = VehicleSteerDirection.LEFT;
+                                    sidewaysDirection = VehicleSteerDirection.LEFT;
                                 }
 
-                                if (direction != null) {
+                                VehicleSteerDirection forwardsDirection = null;
+                                if (forwardsValue > 0) {
+                                    forwardsDirection = VehicleSteerDirection.FORWARD;
+                                } else if (forwardsValue < 0) {
+                                    forwardsDirection = VehicleSteerDirection.BACKWARDS;
+                                }
+                                VehicleSteerDirection[] directions = new VehicleSteerDirection[] { sidewaysDirection, forwardsDirection};
+                                if (forwardsDirection != null || sidewaysDirection != null) {
                                     CarData carData = CarData.ALL_REGISTERED_CARS
                                             .get(Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().get(Vehicles.vehicleNameKey, PersistentDataType.STRING));
                                     SpawnedCarData spawnedCarData = SpawnedCarData.ALL_SPAWNED_CAR_DATA
                                             .get(Utils.bytesAsUuid(vehicleEntity.getPersistentDataContainer().get(Vehicles.uuidOfCenterAsKey, PersistentDataType.BYTE_ARRAY)));
 
-                                    VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData,direction);
-                                    Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> PLUGIN_MANAGER.callEvent(vehicleSteerEvent));
-                                    if (vehicleSteerEvent.isCancelled()) {
-                                        return;
-                                    }
+                                    for (int i = 0; i < 2; i++) {
+                                        if (directions[i] == null) {
+                                            continue;
+                                        }
+                                        VehicleSteerEvent vehicleSteerEvent = new VehicleSteerEvent(carData, directions[i]);
+                                        Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> PLUGIN_MANAGER.callEvent(vehicleSteerEvent));
+                                        if (vehicleSteerEvent.isCancelled()) {
+                                            return;
+                                        }
 
-                                    VehicleSteerDirection finalDirection = vehicleSteerEvent.getDirection();
-                                    Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> Actions.steerVehicle(spawnedCarData, finalDirection));
+                                        VehicleSteerDirection finalDirection = vehicleSteerEvent.getDirection();
+                                        Bukkit.getScheduler().runTask(PLUGIN_INSTANCE, () -> Actions.steerVehicle(spawnedCarData, finalDirection));
+                                    }
                                 }
                             }
                         }
