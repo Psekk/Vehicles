@@ -102,6 +102,7 @@ public class OnVehicleSteerPacket {
                 });
     }
 
+    @SuppressWarnings("unused")
     public static void put(Player player, Long fullTime) {
         if (LAST_TIME_JUMPED.containsKey(player)) {
             return;

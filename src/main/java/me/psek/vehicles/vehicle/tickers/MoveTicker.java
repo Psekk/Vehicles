@@ -1,6 +1,5 @@
 package me.psek.vehicles.vehicle.tickers;
 
-import lombok.Getter;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.vehicle.data.SpawnedCarData;
 import org.bukkit.Bukkit;

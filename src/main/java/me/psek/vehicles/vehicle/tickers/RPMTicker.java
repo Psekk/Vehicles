@@ -49,6 +49,7 @@ public class RPMTicker {
         }
     }
 
+    @SuppressWarnings("unused")
     public static void remove(SpawnedCarData spawnedCarData) {
         UUID uuid = spawnedCarData.getEntities().get(0).getUniqueId();
         IN_RED_RPM_ZONE.remove(uuid);
