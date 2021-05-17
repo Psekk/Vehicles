@@ -4,8 +4,8 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @SuppressWarnings("unused")
-public class Utils {
-    private Utils() {
+public class UUIDUtils {
+    private UUIDUtils() {
         throw new UnsupportedOperationException();
     }
 

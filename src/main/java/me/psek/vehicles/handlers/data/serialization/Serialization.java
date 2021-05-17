@@ -1,4 +1,4 @@
-package me.psek.vehicles.handlers.serialization;
+package me.psek.vehicles.handlers.data.serialization;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

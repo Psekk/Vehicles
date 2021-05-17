@@ -1,6 +1,8 @@
 package me.psek.vehicles;
 
 import me.psek.vehicles.handlers.data.VehicleSaver;
+import me.psek.vehicles.handlers.nms.INMS;
+import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.QuitListener;
 import me.psek.vehicles.vehicletypes.Car;
@@ -15,20 +17,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public final class Vehicles extends JavaPlugin {
-    private VehicleSaver IOInstance;
+    private VehicleSaver vehicleSaver;
 
     @Override
     public void onEnable() {
         registerNamespacedKeys();
         registerListeners(new EntityInteractListener(uuidOfCenterSeatKey), new QuitListener(uuidOfCenterSeatKey));
 
-        IOInstance = new VehicleSaver();
-        registerVehicleTypes(new Car());
+        INMS NMSInstance = new Mediator().getNMS();
+        vehicleSaver = new VehicleSaver();
+
+        registerVehicleTypes(new Car(NMSInstance));
     }
 
     @Override
     public void onDisable() {
-        IOInstance.storeData();
+        Car.ALL_SPAWNED_CARS.clear();
+        vehicleSaver.storeData(this);
     }
 
     private NamespacedKey uuidOfCenterSeatKey;
