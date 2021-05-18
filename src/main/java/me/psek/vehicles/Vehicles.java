@@ -28,6 +28,8 @@ public final class Vehicles extends JavaPlugin {
         vehicleSaver = new VehicleSaver();
 
         registerVehicleTypes(new Car(NMSInstance));
+
+        vehicleSaver.retrieveData(this);
     }
 
     @Override

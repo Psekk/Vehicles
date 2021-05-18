@@ -5,13 +5,8 @@ import lombok.Setter;
 import me.psek.vehicles.vehicletypes.IVehicle;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class SpawnedCarData implements Serializable {
-    public static final transient Map<UUID, SpawnedCarData> ALL_SPAWNED_VEHICLES = new HashMap<>();
-
     @Getter
     private final IVehicle vehicleType;
 

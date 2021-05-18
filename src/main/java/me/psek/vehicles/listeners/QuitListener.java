@@ -24,8 +24,6 @@ public class QuitListener implements Listener {
             return;
         }
         vehicleEntity.removePassenger(event.getPlayer());
-
-        //todo maybe add GC
     }
 
     public QuitListener(NamespacedKey uuidOfCenterSeatKey) {

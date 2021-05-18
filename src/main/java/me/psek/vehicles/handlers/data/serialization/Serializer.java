@@ -6,7 +6,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.charset.StandardCharsets;
 
-public class Serialization {
+public class Serializer {
     /**
      * Serialize any object
      * @param obj the object that will be serialized
