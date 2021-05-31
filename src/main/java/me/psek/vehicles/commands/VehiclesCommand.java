@@ -1,6 +1,7 @@
 package me.psek.vehicles.commands;
 
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -46,8 +47,7 @@ public class VehiclesCommand implements CommandExecutor {
                     }
                     player = p;
                 }
-                IVehicle vehicleType = plugin.getVehicleSubTypes().get(args[1].toLowerCase());
-                vehicleType.spawn(vehicleType.getId(args[1].toLowerCase()), player.getLocation());
+                //todo remake entire getting vehicle sort
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;
             case "info":

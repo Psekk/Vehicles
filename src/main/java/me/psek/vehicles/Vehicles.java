@@ -10,6 +10,8 @@ import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.QuitListener;
+import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
+import me.psek.vehicles.tickers.MovementDataTicker;
 import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.NamespacedKey;
@@ -29,16 +31,17 @@ public final class Vehicles extends JavaPlugin {
     public void onEnable() {
         registerNamespacedKeys();
         registerListeners(new EntityInteractListener(uuidOfCenterSeatKey), new QuitListener(uuidOfCenterSeatKey));
+        registerCommands();
+        registerTickers(vehicleSortClassName);
+        registerTestCar();
 
         protocolManager = ProtocolLibrary.getProtocolManager();
         INMS NMSInstance = new Mediator().getNMS();
         vehicleSaver = new VehicleSaver();
 
-        registerVehicleTypes(new Car(NMSInstance));
+        registerVehicleTypes(new Car(NMSInstance, this));
 
         vehicleSaver.retrieveData(this);
-
-        registerTestCar();
     }
 
     @Override
@@ -92,9 +95,11 @@ public final class Vehicles extends JavaPlugin {
     }
 
     private NamespacedKey uuidOfCenterSeatKey;
+    private NamespacedKey vehicleSortClassName;
 
     private void registerNamespacedKeys() {
         uuidOfCenterSeatKey = new NamespacedKey(this, "uuidOfCenterSeat");
+        vehicleSortClassName = new NamespacedKey(this, "vehicleSortClassName");
     }
 
     @Getter
@@ -105,10 +110,11 @@ public final class Vehicles extends JavaPlugin {
     }
 
     @Getter
-    private final Map<String, IVehicle> vehicleSubTypes = new HashMap<>();
+    private final Map<String, Builder> vehicleSubTypes = new HashMap<>();
 
-    public void registerVehicleSubType(String name, IVehicle iVehicle) {
-        vehicleSubTypes.put(name, iVehicle);
+    @SuppressWarnings("unused")
+    public void registerVehicleSubType(String name, Builder builder) {
+        vehicleSubTypes.put(name, builder);
     }
 
     private void registerListeners(Listener... listeners) {
@@ -121,5 +127,27 @@ public final class Vehicles extends JavaPlugin {
     @SuppressWarnings("ConstantConditions")
     private void registerCommands() {
         this.getCommand("vehicles").setExecutor(new VehiclesCommand(this));
+    }
+
+    private void registerTickers(NamespacedKey vehicleSortClassName) {
+        new MovementDataTicker(this, vehicleSortClassName);
+    }
+
+    @Getter
+    private final List<ISpawnedVehicle> spawnedVehicles = new ArrayList<>();
+
+    public void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
+        spawnedVehicles.add(iSpawnedVehicle);
+    }
+
+    @SuppressWarnings("unused")
+    public void unregisterSpawnedVehicle(byte[] UUID) {
+        for (ISpawnedVehicle iSpawnedVehicle : spawnedVehicles) {
+            if (iSpawnedVehicle.getCenterUUID() != UUID) {
+                continue;
+            }
+            spawnedVehicles.remove(iSpawnedVehicle);
+            break;
+        }
     }
 }

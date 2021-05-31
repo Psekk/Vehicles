@@ -1,47 +1,60 @@
 package me.psek.vehicles.vehicletypes;
 
 import lombok.Getter;
+import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.UUIDUtils;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Car implements IVehicle {
-    private final List<SpawnedCarData> allSpawnedCars = new ArrayList<>();
-
     private static final List<Builder> carSubTypes = new ArrayList<>();
+
+    private final List<SpawnedCarData> allSpawnedCars = new ArrayList<>();
     private final INMS NMSInstance;
 
-    public Car(INMS NMSInstance) {
+    public Car(INMS NMSInstance, Vehicles plugin) {
         this.NMSInstance = NMSInstance;
+        registerNamespacedKeys(plugin);
     }
 
     @Override
-    public void spawn(int id, Location centerLocation) {
+    public void spawn(Vehicles plugin, int id, Location centerLocation) {
         centerLocation.setYaw(0);
         Builder subCarData = carSubTypes.get(id);
         World world = Objects.requireNonNull(centerLocation.getWorld());
         ArmorStand center = world.spawn(centerLocation, ArmorStand.class);
+        byte[] centerUUIDBytes = UUIDUtils.UUIDtoBytes(center.getUniqueId());
         applySpawnModifiers(center);
         List<Vector> seatPositions = subCarData.getSeatPositions();
         byte[][] childUUIDs = new byte[subCarData.getSeatCount()][2];
+        byte[] steererUUID = null;
         for (int i = 0; i < subCarData.getSeatCount(); i++) {
             ArmorStand seat = world.spawn(centerLocation.add(seatPositions.get(i)), ArmorStand.class);
+            seat.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDBytes);
             childUUIDs[i] = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             applySpawnModifiers(seat);
+            if (i == subCarData.steeringSeatIndex) {
+                steererUUID = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
+            }
         }
         SpawnedCarData spawnedCarData =
-                new SpawnedCarData(this, id, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, subCarData.isElectric());
+                new SpawnedCarData(this, id, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, steererUUID, subCarData.isElectric());
         allSpawnedCars.add(spawnedCarData);
+        plugin.registerSpawnedVehicle(spawnedCarData);
     }
 
     @Override
@@ -58,6 +71,17 @@ public class Car implements IVehicle {
             }
         });
         return id.get();
+    }
+
+    NamespacedKey centerUUIDKey;
+
+    private void registerNamespacedKeys(Vehicles plugin) {
+        centerUUIDKey = new NamespacedKey(plugin, "centerUUID");
+    }
+
+    @Override
+    public UUID getCenterUUID(Entity entity) {
+        return UUIDUtils.bytesToUUID(entity.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
     }
 
     private void applySpawnModifiers(ArmorStand armorStand) {
