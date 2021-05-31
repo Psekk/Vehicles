@@ -1,12 +1,12 @@
 name: Vehicles
 version: ${project.version}
 main: me.psek.vehicles.Vehicles
-api-version: 1.14
+api-version: 1.13
 depend:
   - ProtocolLib
 authors: [ Psek ]
-description: car go brrrrrrrrrrrrrrrrrrrrrrrr
+description: The only vehicle plugin you will ever need!
 commands:
   vehicles:
-    description: cool brrrrrrr
+    description: The main command
     aliases: [vehicles, vehicle, ve, v]

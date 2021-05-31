@@ -2,7 +2,7 @@ package me.psek.vehicles.vehicletypes;
 
 import lombok.Getter;
 import me.psek.vehicles.handlers.nms.INMS;
-import me.psek.vehicles.spawnedvehiclesdata.SpawnedCarData;
+import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.UUIDUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -13,9 +13,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Car implements IVehicle {
-    public static final List<SpawnedCarData> ALL_SPAWNED_CARS = new ArrayList<>();
+    private final List<SpawnedCarData> allSpawnedCars = new ArrayList<>();
 
     private static final List<Builder> carSubTypes = new ArrayList<>();
     private final INMS NMSInstance;
@@ -38,8 +39,25 @@ public class Car implements IVehicle {
             childUUIDs[i] = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             applySpawnModifiers(seat);
         }
-        SpawnedCarData spawnedCarData = new SpawnedCarData(this, id, UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, subCarData.isElectric());
-        ALL_SPAWNED_CARS.add(spawnedCarData);
+        SpawnedCarData spawnedCarData =
+                new SpawnedCarData(this, id, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, subCarData.isElectric());
+        allSpawnedCars.add(spawnedCarData);
+    }
+
+    @Override
+    public void move(int id, double length, Object direction) {
+
+    }
+
+    @Override
+    public int getId(String name) {
+        AtomicInteger id = new AtomicInteger(-1);
+        carSubTypes.forEach(c -> {
+            if (c.name.equals(name)) {
+                id.set(carSubTypes.indexOf(c));
+            }
+        });
+        return id.get();
     }
 
     private void applySpawnModifiers(ArmorStand armorStand) {
@@ -58,23 +76,19 @@ public class Car implements IVehicle {
         carSubTypes.add(builder);
     }
 
+    @SuppressWarnings("unused")
     public static void unRegisterCarSubType(Builder builder) {
         carSubTypes.remove(builder);
     }
 
     @Override
     public List<SpawnedCarData> getSerializableData() {
-        return ALL_SPAWNED_CARS;
+        return allSpawnedCars;
     }
 
     @Override
     public Class<? extends Serializable> getSerializableClass() {
         return SpawnedCarData.class;
-    }
-
-    @Override
-    public void move(int id, double length, Object direction) {
-
     }
 
     private void checkPositions() {

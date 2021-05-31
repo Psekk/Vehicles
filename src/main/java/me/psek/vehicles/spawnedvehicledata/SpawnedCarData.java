@@ -1,4 +1,4 @@
-package me.psek.vehicles.spawnedvehiclesdata;
+package me.psek.vehicles.spawnedvehicledata;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +14,9 @@ public class SpawnedCarData implements Serializable {
     private final int id;
 
     @Getter
+    private final String name;
+
+    @Getter
     private final byte[] centerUUID;
 
     @Getter
@@ -21,7 +24,7 @@ public class SpawnedCarData implements Serializable {
 
     @Getter
     @Setter
-    private double currentSpeed = 0D;
+    private double velocity = 0D;
 
     @Getter
     @Setter
@@ -35,9 +38,10 @@ public class SpawnedCarData implements Serializable {
     private final boolean electric;
 
 
-    public SpawnedCarData(IVehicle vehicleType, int id, byte[] centerUUID, byte[][] childUUIDs, boolean electric) {
+    public SpawnedCarData(IVehicle vehicleType, int id, String name, byte[] centerUUID, byte[][] childUUIDs, boolean electric) {
         this.vehicleType = vehicleType;
         this.id = id;
+        this.name = name;
         this.centerUUID = centerUUID;
         this.childUUIDs = childUUIDs;
         this.electric = electric;

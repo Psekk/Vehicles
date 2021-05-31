@@ -10,6 +10,8 @@ public interface IVehicle {
 
     void move(int id, double length, Object direction);
 
+    int getId(String name);
+
     List<?> getSerializableData();
 
     Class<? extends Serializable> getSerializableClass();

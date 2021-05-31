@@ -1,16 +1,21 @@
 package me.psek.vehicles.listeners;
 
-import me.psek.vehicles.Vehicles;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class EntityInteractListener implements Listener {
+    public static List<Player> playersInVehicle = new ArrayList<>();
+
     private final NamespacedKey uuidOfCenterSeatKey;
 
     @EventHandler(priority = EventPriority.HIGHEST)
