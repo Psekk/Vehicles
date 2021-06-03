@@ -10,7 +10,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.Objects;
 
 public class KickListener implements Listener {
-    private final NamespacedKey uuidOfCenterSeatKey;
+    private final NamespacedKey centerUUIDKey;
 
     @EventHandler
     public void OnKick(PlayerKickEvent event) {
@@ -18,13 +18,13 @@ public class KickListener implements Listener {
             return;
         }
         Entity vehicleEntity = event.getPlayer().getVehicle();
-        if (!Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().has(uuidOfCenterSeatKey, PersistentDataType.BYTE_ARRAY)) {
+        if (!Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) {
             return;
         }
         vehicleEntity.removePassenger(event.getPlayer());
     }
 
     public KickListener(NamespacedKey uuidOfCenterSeatKey) {
-        this.uuidOfCenterSeatKey = uuidOfCenterSeatKey;
+        this.centerUUIDKey = uuidOfCenterSeatKey;
     }
 }

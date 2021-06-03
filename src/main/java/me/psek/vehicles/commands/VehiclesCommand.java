@@ -1,7 +1,6 @@
 package me.psek.vehicles.commands;
 
 import me.psek.vehicles.Vehicles;
-import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -34,8 +33,9 @@ public class VehiclesCommand implements CommandExecutor {
                     sender.sendMessage("Missing the vehicle name");
                     return false;
                 }
-                if (!plugin.getVehicleSubTypes().containsKey(args[1].toLowerCase())) {
-                    sender.sendMessage("Vehicle " + args[1].toLowerCase() + "does not exist");
+                String carName = args[1].toLowerCase();
+                if (!plugin.getSubVehicleTypes().containsKey(carName)) {
+                    sender.sendMessage("Vehicle " + args[1].toLowerCase() + " does not exist");
                     return false;
                 }
                 Player player = (Player) sender;
@@ -47,7 +47,8 @@ public class VehiclesCommand implements CommandExecutor {
                     }
                     player = p;
                 }
-                //todo remake entire getting vehicle sort
+                IVehicle iVehicle = plugin.getSubVehicleTypes().get(carName);
+                iVehicle.spawn(plugin, iVehicle.getId(carName), player.getLocation());
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;
             case "info":

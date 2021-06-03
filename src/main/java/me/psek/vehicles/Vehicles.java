@@ -2,14 +2,15 @@ package me.psek.vehicles;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import lombok.Builder;
 import lombok.Getter;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.handlers.data.VehicleSaver;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
+import me.psek.vehicles.listeners.KickListener;
 import me.psek.vehicles.listeners.QuitListener;
+import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
 import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
 import me.psek.vehicles.tickers.MovementDataTicker;
 import me.psek.vehicles.vehicletypes.Car;
@@ -30,17 +31,18 @@ public final class Vehicles extends JavaPlugin {
     @Override
     public void onEnable() {
         registerNamespacedKeys();
-        registerListeners(new EntityInteractListener(uuidOfCenterSeatKey), new QuitListener(uuidOfCenterSeatKey));
+        registerListeners(new EntityInteractListener(centerUUIDKey), new QuitListener(centerUUIDKey), new KickListener(centerUUIDKey));
         registerCommands();
         registerTickers(vehicleSortClassName);
-        registerTestCar();
+        registerPacketListeners(centerUUIDKey, vehicleSortClassName);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
         INMS NMSInstance = new Mediator().getNMS();
         vehicleSaver = new VehicleSaver();
 
-        registerVehicleTypes(new Car(NMSInstance, this));
+        registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassName));
 
+        registerTestCar();
         vehicleSaver.retrieveData(this);
     }
 
@@ -92,13 +94,20 @@ public final class Vehicles extends JavaPlugin {
                 .maxRedRPMTicks(45)
                 .build();
         Car.registerCarSubtype(carType);
+        for (IVehicle iVehicle : vehicleTypes) {
+            if (!iVehicle.getClass().getSimpleName().equalsIgnoreCase("car")) {
+                continue;
+            }
+            registerSubVehicleType("lada", iVehicle);
+            break;
+        }
     }
 
-    private NamespacedKey uuidOfCenterSeatKey;
+    private NamespacedKey centerUUIDKey;
     private NamespacedKey vehicleSortClassName;
 
     private void registerNamespacedKeys() {
-        uuidOfCenterSeatKey = new NamespacedKey(this, "uuidOfCenterSeat");
+        centerUUIDKey = new NamespacedKey(this, "centerUUID");
         vehicleSortClassName = new NamespacedKey(this, "vehicleSortClassName");
     }
 
@@ -110,11 +119,10 @@ public final class Vehicles extends JavaPlugin {
     }
 
     @Getter
-    private final Map<String, Builder> vehicleSubTypes = new HashMap<>();
+    private final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
 
-    @SuppressWarnings("unused")
-    public void registerVehicleSubType(String name, Builder builder) {
-        vehicleSubTypes.put(name, builder);
+    public void registerSubVehicleType(String name, IVehicle type) {
+        subVehicleTypes.put(name, type);
     }
 
     private void registerListeners(Listener... listeners) {
@@ -122,6 +130,10 @@ public final class Vehicles extends JavaPlugin {
         for (Listener listener : listeners) {
             pluginManager.registerEvents(listener, this);
         }
+    }
+
+    private void registerPacketListeners(NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
+        new VehicleSteerPacket(this, centerUUIDKey, vehicleSortClassName);
     }
 
     @SuppressWarnings("ConstantConditions")

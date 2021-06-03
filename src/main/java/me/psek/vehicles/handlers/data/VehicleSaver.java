@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 public class VehicleSaver extends Serializer {
@@ -35,16 +36,17 @@ public class VehicleSaver extends Serializer {
         String path = plugin.getDataFolder().getAbsolutePath() + "/data";
         for (IVehicle vehicleType : plugin.getVehicleTypes()) {
             try {
-                Path localPath = Path.of(path, vehicleType.getClass().getSimpleName().toLowerCase());
+                Path localPath = Path.of(path, "data.",  vehicleType.getClass().getSimpleName().toLowerCase());
                 if (!Files.exists(localPath)) {
                     continue;
                 }
                 List<String> deserializedLines = Files.readAllLines(localPath);
                 Class<? extends Serializable> clazz = vehicleType.getSerializableClass();
+                List<Object> objects = new ArrayList<>();
                 for (String deserializedLine : deserializedLines) {
-                    SpawnedCarData deserialized = (SpawnedCarData) deserialize(deserializedLine, clazz);
-                    System.out.println(deserialized.isElectric());
+                    objects.add(deserialize(deserializedLine, clazz));
                 }
+                vehicleType.loadFromData(plugin, objects);
             } catch (Exception exception) {
                 exception.printStackTrace();
             }

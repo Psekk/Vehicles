@@ -12,7 +12,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.Objects;
 
 public class QuitListener implements Listener {
-    private final NamespacedKey uuidOfCenterSeatKey;
+    private final NamespacedKey centerUUIDKey;
 
     @EventHandler(priority= EventPriority.HIGHEST)
     public void onQuit(PlayerQuitEvent event) {
@@ -20,13 +20,13 @@ public class QuitListener implements Listener {
             return;
         }
         Entity vehicleEntity = event.getPlayer().getVehicle();
-        if (!Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().has(uuidOfCenterSeatKey, PersistentDataType.BYTE_ARRAY)) {
+        if (!Objects.requireNonNull(vehicleEntity).getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) {
             return;
         }
         vehicleEntity.removePassenger(event.getPlayer());
     }
 
     public QuitListener(NamespacedKey uuidOfCenterSeatKey) {
-        this.uuidOfCenterSeatKey = uuidOfCenterSeatKey;
+        this.centerUUIDKey = uuidOfCenterSeatKey;
     }
 }

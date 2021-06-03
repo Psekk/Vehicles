@@ -4,43 +4,38 @@ import lombok.Getter;
 import lombok.Setter;
 import me.psek.vehicles.vehicletypes.IVehicle;
 
-import java.beans.Transient;
-import java.io.Serializable;
 import java.util.UUID;
 
-public class SpawnedCarData implements Serializable, ISpawnedVehicle {
+public class SpawnedCarData implements ISpawnedVehicle {
     @Setter
     private double currentSpeed = 0D;
 
     @Override
-    @Transient public double getCurrentSpeed() {
+    public double getCurrentSpeed() {
         return currentSpeed;
     }
 
     private final String name;
 
     @Override
-    @Transient public String getName() {
+    public String getName() {
         return name;
     }
 
     @Override
-    @Transient public ISpawnedVehicle getSpawnedVehicle(UUID centerUUID) {
+    public ISpawnedVehicle getSpawnedVehicle(UUID centerUUID) {
         return this;
     }
 
     private final byte[] centerUUID;
 
     @Override
-    @Transient public byte[] getCenterUUID() {
+    public byte[] getCenterUUID() {
         return centerUUID;
     }
 
     @Getter
     private final IVehicle vehicleType;
-
-    @Getter
-    private final int id;
 
     @Getter
     private final byte[] steererUUID;
@@ -60,9 +55,8 @@ public class SpawnedCarData implements Serializable, ISpawnedVehicle {
     private final boolean electric;
 
 
-    public SpawnedCarData(IVehicle vehicleType, int id, String name, byte[] centerUUID, byte[][] childUUIDs, byte[] steererUUID, boolean electric) {
+    public SpawnedCarData(IVehicle vehicleType, String name, byte[] centerUUID, byte[][] childUUIDs, byte[] steererUUID, boolean electric) {
         this.vehicleType = vehicleType;
-        this.id = id;
         this.name = name;
         this.centerUUID = centerUUID;
         this.childUUIDs = childUUIDs;

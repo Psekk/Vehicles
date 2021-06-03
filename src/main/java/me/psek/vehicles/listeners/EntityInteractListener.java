@@ -16,11 +16,11 @@ import java.util.List;
 public class EntityInteractListener implements Listener {
     public static List<Player> playersInVehicle = new ArrayList<>();
 
-    private final NamespacedKey uuidOfCenterSeatKey;
+    private final NamespacedKey centerUUIDKey;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityInteract(PlayerInteractAtEntityEvent event) {
-        if (!event.getRightClicked().getPersistentDataContainer().has(uuidOfCenterSeatKey, PersistentDataType.BYTE_ARRAY)) {
+        if (!event.getRightClicked().getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) {
             return;
         }
         Entity clickedEntity = event.getRightClicked();
@@ -30,7 +30,7 @@ public class EntityInteractListener implements Listener {
         clickedEntity.addPassenger(event.getPlayer());
     }
 
-    public EntityInteractListener(NamespacedKey uuidOfCenterSeatKey) {
-        this.uuidOfCenterSeatKey = uuidOfCenterSeatKey;
+    public EntityInteractListener(NamespacedKey centerUUIDKey) {
+        this.centerUUIDKey = centerUUIDKey;
     }
 }

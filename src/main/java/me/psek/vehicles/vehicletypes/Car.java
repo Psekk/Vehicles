@@ -2,6 +2,7 @@ package me.psek.vehicles.vehicletypes;
 
 import lombok.Getter;
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.handlers.data.serializabledata.SerializableSpawnedCarData;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.UUIDUtils;
@@ -14,10 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Car implements IVehicle {
@@ -25,10 +23,13 @@ public class Car implements IVehicle {
 
     private final List<SpawnedCarData> allSpawnedCars = new ArrayList<>();
     private final INMS NMSInstance;
+    private final NamespacedKey centerUUIDKey;
+    private final NamespacedKey vehicleSortClassName;
 
-    public Car(INMS NMSInstance, Vehicles plugin) {
+    public Car(INMS NMSInstance, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
         this.NMSInstance = NMSInstance;
-        registerNamespacedKeys(plugin);
+        this.centerUUIDKey = centerUUIDKey;
+        this.vehicleSortClassName = vehicleSortClassName;
     }
 
     @Override
@@ -43,22 +44,35 @@ public class Car implements IVehicle {
         byte[][] childUUIDs = new byte[subCarData.getSeatCount()][2];
         byte[] steererUUID = null;
         for (int i = 0; i < subCarData.getSeatCount(); i++) {
-            ArmorStand seat = world.spawn(centerLocation.add(seatPositions.get(i)), ArmorStand.class);
-            seat.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDBytes);
-            childUUIDs[i] = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
+            ArmorStand seat = world.spawn(centerLocation.clone().add(seatPositions.get(i)), ArmorStand.class);
             applySpawnModifiers(seat);
+            seat.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDBytes);
+            seat.getPersistentDataContainer().set(vehicleSortClassName, PersistentDataType.STRING, carSubTypes.get(id).getName());
+            childUUIDs[i] = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             if (i == subCarData.steeringSeatIndex) {
                 steererUUID = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             }
         }
         SpawnedCarData spawnedCarData =
-                new SpawnedCarData(this, id, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, steererUUID, subCarData.isElectric());
+                new SpawnedCarData(this, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, steererUUID, subCarData.isElectric());
         allSpawnedCars.add(spawnedCarData);
         plugin.registerSpawnedVehicle(spawnedCarData);
     }
 
+    private void applySpawnModifiers(ArmorStand armorStand) {
+        armorStand.setGravity(false);
+        armorStand.setInvulnerable(true);
+        armorStand.setVisible(true);
+        armorStand.setBasePlate(false);
+        NMSInstance.setNoClip(armorStand, true);
+    }
+
     @Override
-    public void move(int id, double length, Object direction) {
+    public void movementHandler(float forwards, float sideways, boolean flag1, boolean flag2) {
+
+    }
+
+    private void move(int id, double length, Object direction) {
 
     }
 
@@ -73,23 +87,9 @@ public class Car implements IVehicle {
         return id.get();
     }
 
-    NamespacedKey centerUUIDKey;
-
-    private void registerNamespacedKeys(Vehicles plugin) {
-        centerUUIDKey = new NamespacedKey(plugin, "centerUUID");
-    }
-
     @Override
     public UUID getCenterUUID(Entity entity) {
         return UUIDUtils.bytesToUUID(entity.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
-    }
-
-    private void applySpawnModifiers(ArmorStand armorStand) {
-        armorStand.setGravity(false);
-        armorStand.setInvulnerable(true);
-        armorStand.setVisible(true);
-        armorStand.setBasePlate(false);
-        NMSInstance.setNoClip(armorStand, true);
     }
 
     /**
@@ -106,13 +106,28 @@ public class Car implements IVehicle {
     }
 
     @Override
-    public List<SpawnedCarData> getSerializableData() {
-        return allSpawnedCars;
+    public List<SerializableSpawnedCarData> getSerializableData() {
+        List<SerializableSpawnedCarData> tempList = new ArrayList<>();
+        for (SpawnedCarData scd : allSpawnedCars) {
+            tempList.add(new SerializableSpawnedCarData(scd.getCurrentSpeed(), scd.getName(), scd.getCenterUUID(),
+                    scd.getVehicleType().getClass().getSimpleName().toLowerCase(), scd.getSteererUUID(), scd.getChildUUIDs(),
+                    scd.getCurrentGear(), scd.getGasAmount(), scd.isElectric()));
+        }
+        return tempList;
     }
 
     @Override
     public Class<? extends Serializable> getSerializableClass() {
-        return SpawnedCarData.class;
+        return SerializableSpawnedCarData.class;
+    }
+
+    @Override
+    public void loadFromData(Vehicles plugin, List<Object> input) {
+        for (Object object : input) {
+            SerializableSpawnedCarData data = (SerializableSpawnedCarData) object;
+            SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), data.getCenterUUID(), data.getChildUUIDs(), data.getSteererUUID(), data.isElectric());
+            plugin.registerSpawnedVehicle(spawnedCarData);
+        }
     }
 
     private void checkPositions() {

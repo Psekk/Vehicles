@@ -38,6 +38,7 @@ public class MovementDataTicker {
         }, 5L, 5L);
     }
 
+    //todo fix: what the fuck is this namespacedkey
     public MovementDataTicker(Vehicles plugin, NamespacedKey vehicleSortClassName) {
         run(plugin);
         this.vehicleSortClassName = vehicleSortClassName;
