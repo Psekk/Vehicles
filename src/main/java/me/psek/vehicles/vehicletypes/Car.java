@@ -11,15 +11,15 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Car implements IVehicle {
-    private static final List<Builder> carSubTypes = new ArrayList<>();
+    private static final Map<String, Builder> carSubTypes = new HashMap<>();
 
     private final List<SpawnedCarData> allSpawnedCars = new ArrayList<>();
     private final INMS NMSInstance;
@@ -33,9 +33,9 @@ public class Car implements IVehicle {
     }
 
     @Override
-    public void spawn(Vehicles plugin, int id, Location centerLocation) {
+    public void spawn(Vehicles plugin, String name, Location centerLocation) {
         centerLocation.setYaw(0);
-        Builder subCarData = carSubTypes.get(id);
+        Builder subCarData = carSubTypes.get(name);
         World world = Objects.requireNonNull(centerLocation.getWorld());
         ArmorStand center = world.spawn(centerLocation, ArmorStand.class);
         byte[] centerUUIDBytes = UUIDUtils.UUIDtoBytes(center.getUniqueId());
@@ -47,14 +47,14 @@ public class Car implements IVehicle {
             ArmorStand seat = world.spawn(centerLocation.clone().add(seatPositions.get(i)), ArmorStand.class);
             applySpawnModifiers(seat);
             seat.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDBytes);
-            seat.getPersistentDataContainer().set(vehicleSortClassName, PersistentDataType.STRING, carSubTypes.get(id).getName());
+            seat.getPersistentDataContainer().set(vehicleSortClassName, PersistentDataType.STRING, carSubTypes.get(name).getName());
             childUUIDs[i] = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             if (i == subCarData.steeringSeatIndex) {
                 steererUUID = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
             }
         }
         SpawnedCarData spawnedCarData =
-                new SpawnedCarData(this, carSubTypes.get(id).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, steererUUID, subCarData.isElectric());
+                new SpawnedCarData(this, carSubTypes.get(name).getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), childUUIDs, steererUUID, subCarData.isElectric());
         allSpawnedCars.add(spawnedCarData);
         plugin.registerSpawnedVehicle(spawnedCarData);
     }
@@ -68,23 +68,37 @@ public class Car implements IVehicle {
     }
 
     @Override
-    public void movementHandler(float forwards, float sideways, boolean flag1, boolean flag2) {
-
-    }
-
-    private void move(int id, double length, Object direction) {
-
-    }
-
-    @Override
-    public int getId(String name) {
-        AtomicInteger id = new AtomicInteger(-1);
-        carSubTypes.forEach(c -> {
-            if (c.name.equals(name)) {
-                id.set(carSubTypes.indexOf(c));
+    public void movementHandler(Vehicles plugin, Entity vehicle, Player player, float forwards, float sideways, boolean flag1, boolean flag2) {
+        Builder builder = carSubTypes.get(vehicle.getPersistentDataContainer().get(vehicleSortClassName, PersistentDataType.STRING);
+        SpawnedCarData spawnedCarData =
+                (SpawnedCarData) plugin.getSpawnedVehicles().get(UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY)));
+        UUID centerUUID = UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
+        if (forwards == 1) {
+            if (spawnedCarData.getCurrentGear() == 0) {
+                //todo add some sounds + particles (which are configurable)
+                return;
             }
-        });
-        return id.get();
+            //todo do some mathy shit and physics to calculate shit torque gear ratio and shit
+            if (spawnedCarData.getCurrentSpeed() < 0) {
+                brake(centerUUID, );
+                return;
+            }
+            moveForwards(centerUUID, );
+        } else {
+
+        }
+    }
+
+    private void moveForwards(UUID centerUUID, double lenght) {
+
+    }
+
+    private void moveBackwards(UUID centerUUID, double lenght) {
+
+    }
+
+    private void brake(UUID centerUUID, double amount) {
+
     }
 
     @Override
@@ -96,8 +110,8 @@ public class Car implements IVehicle {
      * registerCarSubtype
      * @param builder the built car subtype (note: order on should be equal to their id)
      */
-    public static void registerCarSubtype(Builder builder) {
-        carSubTypes.add(builder);
+    public static void registerCarSubtype(String name, Builder builder) {
+        carSubTypes.put(name, builder);
     }
 
     @SuppressWarnings("unused")

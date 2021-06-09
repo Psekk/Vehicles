@@ -13,6 +13,7 @@ import me.psek.vehicles.listeners.QuitListener;
 import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
 import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
 import me.psek.vehicles.tickers.MovementDataTicker;
+import me.psek.vehicles.utility.UUIDUtils;
 import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.NamespacedKey;
@@ -146,20 +147,14 @@ public final class Vehicles extends JavaPlugin {
     }
 
     @Getter
-    private final List<ISpawnedVehicle> spawnedVehicles = new ArrayList<>();
+    private final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
 
     public void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
-        spawnedVehicles.add(iSpawnedVehicle);
+        spawnedVehicles.put(UUIDUtils.bytesToUUID(iSpawnedVehicle.getCenterUUID()), iSpawnedVehicle);
     }
 
     @SuppressWarnings("unused")
     public void unregisterSpawnedVehicle(byte[] UUID) {
-        for (ISpawnedVehicle iSpawnedVehicle : spawnedVehicles) {
-            if (iSpawnedVehicle.getCenterUUID() != UUID) {
-                continue;
-            }
-            spawnedVehicles.remove(iSpawnedVehicle);
-            break;
-        }
+        spawnedVehicles.remove(UUIDUtils.bytesToUUID(UUID));
     }
 }

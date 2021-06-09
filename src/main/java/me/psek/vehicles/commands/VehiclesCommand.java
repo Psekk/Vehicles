@@ -48,7 +48,7 @@ public class VehiclesCommand implements CommandExecutor {
                     player = p;
                 }
                 IVehicle iVehicle = plugin.getSubVehicleTypes().get(carName);
-                iVehicle.spawn(plugin, iVehicle.getId(carName), player.getLocation());
+                iVehicle.spawn(plugin, carName, player.getLocation());
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;
             case "info":

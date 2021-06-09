@@ -22,11 +22,6 @@ public class SpawnedCarData implements ISpawnedVehicle {
         return name;
     }
 
-    @Override
-    public ISpawnedVehicle getSpawnedVehicle(UUID centerUUID) {
-        return this;
-    }
-
     private final byte[] centerUUID;
 
     @Override

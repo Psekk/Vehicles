@@ -32,16 +32,21 @@ public class VehicleSteerPacket {
                 boolean isExit = packet.getBooleans().read(1);
                 String name = player.getVehicle().getPersistentDataContainer().get(vehicleSortClassName, PersistentDataType.STRING);
                 IVehicle iVehicle = getVehicleInstance(name);
-                iVehicle.movementHandler(forwardsValue, sidewaysValue, isJump, isExit);
+                passToMovementHandler(player, iVehicle, forwardsValue, sidewaysValue, isJump, isExit);
             }
         });
     }
+
 
     private final Vehicles plugin;
 
     //todo add error checking etc for if the vehicle went bye bye
     private IVehicle getVehicleInstance(String name) {
         return this.plugin.getSubVehicleTypes().get(name);
+    }
+
+    private void passToMovementHandler(Player player, IVehicle iVehicle, float forwardsValue, float sidewaysValue, boolean isJump, boolean isExit) {
+        iVehicle.movementHandler(plugin, player.getVehicle(), player, forwardsValue, sidewaysValue, isJump, isExit);
     }
 
     public VehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
