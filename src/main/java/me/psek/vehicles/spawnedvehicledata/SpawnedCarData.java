@@ -3,8 +3,7 @@ package me.psek.vehicles.spawnedvehicledata;
 import lombok.Getter;
 import lombok.Setter;
 import me.psek.vehicles.vehicletypes.IVehicle;
-
-import java.util.UUID;
+import org.bukkit.util.Vector;
 
 public class SpawnedCarData implements ISpawnedVehicle {
     @Setter
@@ -39,20 +38,29 @@ public class SpawnedCarData implements ISpawnedVehicle {
     private final byte[][] childUUIDs;
 
     @Getter
+    private Vector currentVector = new Vector(0, 0, 0);
+
+    @Getter
     @Setter
-    private int currentGear = 0;
+    //todo change to 0 later on
+    private int currentGear = 1;
 
     @Getter
     @Setter
     private double gasAmount = 0D;
 
     @Getter
+    @Setter
+    private double currentRPM;
+
+    @Getter
     private final boolean electric;
 
 
-    public SpawnedCarData(IVehicle vehicleType, String name, byte[] centerUUID, byte[][] childUUIDs, byte[] steererUUID, boolean electric) {
+    public SpawnedCarData(IVehicle vehicleType, String name, byte[] centerUUID, byte[][] childUUIDs, byte[] steererUUID, boolean electric, double currentRPM) {
         this.vehicleType = vehicleType;
         this.name = name;
+        this.currentRPM = currentRPM;
         this.centerUUID = centerUUID;
         this.childUUIDs = childUUIDs;
         this.steererUUID = steererUUID;

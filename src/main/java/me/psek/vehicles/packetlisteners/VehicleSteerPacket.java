@@ -42,7 +42,7 @@ public class VehicleSteerPacket {
 
     //todo add error checking etc for if the vehicle went bye bye
     private IVehicle getVehicleInstance(String name) {
-        return this.plugin.getSubVehicleTypes().get(name);
+        return plugin.getAPIHandler().getSubVehicleTypes().get(name);
     }
 
     private void passToMovementHandler(Player player, IVehicle iVehicle, float forwardsValue, float sidewaysValue, boolean isJump, boolean isExit) {

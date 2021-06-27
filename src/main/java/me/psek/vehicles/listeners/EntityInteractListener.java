@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EntityInteractListener implements Listener {
-    public static List<Player> playersInVehicle = new ArrayList<>();
+    public static List<Player> inVehiclePlayers = new ArrayList<>();
 
     private final NamespacedKey centerUUIDKey;
 
@@ -27,7 +27,12 @@ public class EntityInteractListener implements Listener {
         if (!(clickedEntity instanceof ArmorStand) || clickedEntity.getPassengers().size() > 0) {
             return;
         }
-        clickedEntity.addPassenger(event.getPlayer());
+        Player player = event.getPlayer();
+        clickedEntity.addPassenger(player);
+        if (inVehiclePlayers.contains(player)) {
+            return;
+        }
+        inVehiclePlayers.add(player);
     }
 
     public EntityInteractListener(NamespacedKey centerUUIDKey) {

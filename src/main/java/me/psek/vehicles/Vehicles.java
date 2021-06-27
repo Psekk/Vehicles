@@ -3,6 +3,7 @@ package me.psek.vehicles;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import lombok.Getter;
+import me.psek.vehicles.api.APIHandler;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.handlers.data.VehicleSaver;
 import me.psek.vehicles.handlers.nms.INMS;
@@ -12,8 +13,7 @@ import me.psek.vehicles.listeners.KickListener;
 import me.psek.vehicles.listeners.QuitListener;
 import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
 import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
-import me.psek.vehicles.tickers.MovementDataTicker;
-import me.psek.vehicles.utility.UUIDUtils;
+import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
 import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.NamespacedKey;
@@ -28,6 +28,11 @@ public final class Vehicles extends JavaPlugin {
     @Getter
     private ProtocolManager protocolManager;
     private VehicleSaver vehicleSaver;
+    private APIHandler apiHandler;
+
+    private NamespacedKey centerUUIDKey;
+    private NamespacedKey vehicleSortClassName;
+    private NamespacedKey childUUIDsKey;
 
     @Override
     public void onEnable() {
@@ -35,14 +40,15 @@ public final class Vehicles extends JavaPlugin {
         registerListeners(new EntityInteractListener(centerUUIDKey), new QuitListener(centerUUIDKey), new KickListener(centerUUIDKey));
         registerCommands();
         registerTickers(vehicleSortClassName);
-        registerPacketListeners(centerUUIDKey, vehicleSortClassName);
 
         protocolManager = ProtocolLibrary.getProtocolManager();
+        registerPacketListeners(centerUUIDKey, vehicleSortClassName);
+
         INMS NMSInstance = new Mediator().getNMS();
+        apiHandler = new APIHandler(this);
         vehicleSaver = new VehicleSaver();
 
-        registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassName));
-
+        apiHandler.getRegisteringAPI().registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassName, childUUIDsKey));
         registerTestCar();
         vehicleSaver.retrieveData(this);
     }
@@ -55,9 +61,18 @@ public final class Vehicles extends JavaPlugin {
     private void registerTestCar() {
         Car.Builder carType = Car.Builder.builder()
                 .name("lada")
-                .accelerationSpeed(0.5)
-                .brakingSpeed(0.01)
-                .backwardsAccelerationSpeed(0.0025)
+                .horsepower(100)
+                .brakingForce(20)
+                .gearRatios(Arrays.asList(
+                        4.714,
+                        3.143,
+                        2.106,
+                        1.667,
+                        1.285,
+                        1.000,
+                        0.839,
+                        0.667
+                        ))
                 .seatCount(5)
                 .seatPositions(Arrays.asList(
                         new Vector(1,-0.5,1),
@@ -70,60 +85,34 @@ public final class Vehicles extends JavaPlugin {
                         new Vector(-2.5, 0.15, -2.35) ))
                 .gearCount(5)
                 .RPMs(Arrays.asList(
-                        9000,
-                        6000,
-                        7500
+                        10000,
+                        1200,
+                        8500
                 ))
                 .shiftTime(6*20)
                 .steeringSeatIndex(0)
-                .RPMIncreasePerGear(Arrays.asList(
-                        25D,
-                        22.5,
-                        17D,
-                        14D,
-                        12D
-                ))
-                .accelerationMultipliers(Arrays.asList(
-                        1D,
-                        0.85,
-                        0.7,
-                        0.55,
-                        0.35
-                ))
-                .isAutomaticShifting(false)
+                .isAutomatic(false)
                 .gripFactor(0.78921)
                 .maxRedRPMTicks(45)
+                .drivetrainWheelCount(2)
+                .wheelRadius(0.33)
+                .tirePressure(2.9)
+                .vehicleMass(1500)
                 .build();
-        Car.registerCarSubtype(carType);
+        Car.registerCarSubtype("lada", carType);
         for (IVehicle iVehicle : vehicleTypes) {
             if (!iVehicle.getClass().getSimpleName().equalsIgnoreCase("car")) {
                 continue;
             }
-            registerSubVehicleType("lada", iVehicle);
+            apiHandler.getRegisteringAPI().registerSubVehicleType("lada", iVehicle);
             break;
         }
     }
 
-    private NamespacedKey centerUUIDKey;
-    private NamespacedKey vehicleSortClassName;
-
     private void registerNamespacedKeys() {
         centerUUIDKey = new NamespacedKey(this, "centerUUID");
         vehicleSortClassName = new NamespacedKey(this, "vehicleSortClassName");
-    }
-
-    @Getter
-    private final List<IVehicle> vehicleTypes = new ArrayList<>();
-
-    public void registerVehicleTypes(IVehicle... vehicleTypes) {
-        this.vehicleTypes.addAll(Arrays.asList(vehicleTypes));
-    }
-
-    @Getter
-    private final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
-
-    public void registerSubVehicleType(String name, IVehicle type) {
-        subVehicleTypes.put(name, type);
+        childUUIDsKey = new NamespacedKey(this, "childUUIDsKey");
     }
 
     private void registerListeners(Listener... listeners) {
@@ -143,18 +132,14 @@ public final class Vehicles extends JavaPlugin {
     }
 
     private void registerTickers(NamespacedKey vehicleSortClassName) {
-        new MovementDataTicker(this, vehicleSortClassName);
+        new MovementDataTicker(this, centerUUIDKey);
     }
 
-    @Getter
-    private final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
-
-    public void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
-        spawnedVehicles.put(UUIDUtils.bytesToUUID(iSpawnedVehicle.getCenterUUID()), iSpawnedVehicle);
+    public APIHandler getAPIHandler() {
+        return apiHandler;
     }
 
-    @SuppressWarnings("unused")
-    public void unregisterSpawnedVehicle(byte[] UUID) {
-        spawnedVehicles.remove(UUIDUtils.bytesToUUID(UUID));
-    }
+    public final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
+    public final List<IVehicle> vehicleTypes = new ArrayList<>();
+    public final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
 }

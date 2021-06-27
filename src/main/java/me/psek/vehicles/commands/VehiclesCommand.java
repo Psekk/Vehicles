@@ -34,7 +34,7 @@ public class VehiclesCommand implements CommandExecutor {
                     return false;
                 }
                 String carName = args[1].toLowerCase();
-                if (!plugin.getSubVehicleTypes().containsKey(carName)) {
+                if (!plugin.getAPIHandler().getSubVehicleTypes().containsKey(carName)) {
                     sender.sendMessage("Vehicle " + args[1].toLowerCase() + " does not exist");
                     return false;
                 }
@@ -47,7 +47,7 @@ public class VehiclesCommand implements CommandExecutor {
                     }
                     player = p;
                 }
-                IVehicle iVehicle = plugin.getSubVehicleTypes().get(carName);
+                IVehicle iVehicle = plugin.getAPIHandler().getSubVehicleTypes().get(carName);
                 iVehicle.spawn(plugin, carName, player.getLocation());
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;
