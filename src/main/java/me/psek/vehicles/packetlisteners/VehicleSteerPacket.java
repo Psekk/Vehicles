@@ -14,6 +14,17 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.Objects;
 
 public class VehicleSteerPacket {
+    private final Vehicles plugin;
+
+    public VehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
+        onVehicleSteerPacket(plugin, centerUUIDKey, vehicleSortClassName);
+        this.plugin = plugin;
+    }
+
+    private IVehicle getVehicleInstance(String name) {
+        return plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().get(name);
+    }
+
     private void onVehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
         plugin.getProtocolManager().addPacketListener(new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.STEER_VEHICLE) {
             @Override
@@ -37,20 +48,7 @@ public class VehicleSteerPacket {
         });
     }
 
-
-    private final Vehicles plugin;
-
-    //todo add error checking etc for if the vehicle went bye bye
-    private IVehicle getVehicleInstance(String name) {
-        return plugin.getAPIHandler().getSubVehicleTypes().get(name);
-    }
-
     private void passToMovementHandler(Player player, IVehicle iVehicle, float forwardsValue, float sidewaysValue, boolean isJump, boolean isExit) {
         iVehicle.movementHandler(plugin, player.getVehicle(), player, forwardsValue, sidewaysValue, isJump, isExit);
-    }
-
-    public VehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
-        onVehicleSteerPacket(plugin, centerUUIDKey, vehicleSortClassName);
-        this.plugin = plugin;
     }
 }

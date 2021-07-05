@@ -1,5 +1,7 @@
 package me.psek.vehicles.handlers.physics;
 
+import me.psek.vehicles.utility.MathUtils;
+
 @SuppressWarnings("unused")
 public class CarPhysics {
     /**
@@ -13,16 +15,15 @@ public class CarPhysics {
     }
 
     /**
-     * getDriveWheelForce
-     * @param drivetrainWheelCount the amount of wheels driven by the drivetrain
+     * getDrivetrainForce
      * @param totalGearRatio all the gear ratios that affect the drivetrain multiplied
      * @param wheelRadius distance from the outer edge to the center of the wheel (m)
      * @param vehicleMass weight of the vehicle (kg)
      * @param engineTorque the torque (Nm) the engine provides at the given RPM (min)
      * @return force (N) applied to 1 wheel driven by the drivetrain
      */
-    public static double getDriveWheelForce(int drivetrainWheelCount, double totalGearRatio, double wheelRadius, double vehicleMass, double engineTorque, double frictionForce) {
-        return engineTorque*totalGearRatio/drivetrainWheelCount/wheelRadius-frictionForce;
+    public static double getDrivetrainForce(double totalGearRatio, double wheelRadius, double vehicleMass, double engineTorque, double frictionForce) {
+        return engineTorque*totalGearRatio/wheelRadius-frictionForce;
     }
 
     /**
@@ -56,7 +57,21 @@ public class CarPhysics {
      * @return acceleration of the vehicle (m/s²)
      */
     public static double getAcceleration(double accelerationForce, double mass) {
-        System.out.println(accelerationForce + " // " + mass);
         return accelerationForce/mass;
+    }
+
+    public static double getBrakingDeceleration(double brakingForce, double mass) {
+        return brakingForce/mass;
+    }
+
+    /**
+     * getEngineRPM
+     * @param velocity the current velocity (km/h) of the car
+     * @param tireRadius radius of the tire
+     * @param totalGearRatio all the gear ratios involved multiplied
+     * @return RPM of the engine (rev/min)
+     */
+    public static double getEngineRPM(double velocity, double tireRadius, double totalGearRatio, double minRPM) {
+        return velocity*1000*totalGearRatio/(60*2*Math.PI*tireRadius) + minRPM;
     }
 }

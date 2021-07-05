@@ -13,7 +13,7 @@ public class KickListener implements Listener {
     private final NamespacedKey centerUUIDKey;
 
     @EventHandler
-    public void OnKick(PlayerKickEvent event) {
+    public void event(PlayerKickEvent event) {
         if (!event.getPlayer().isInsideVehicle()) {
             return;
         }

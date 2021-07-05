@@ -12,6 +12,10 @@ import org.jetbrains.annotations.NotNull;
 public class VehiclesCommand implements CommandExecutor {
     private final Vehicles plugin;
 
+    public VehiclesCommand(Vehicles plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player)) {
@@ -34,7 +38,7 @@ public class VehiclesCommand implements CommandExecutor {
                     return false;
                 }
                 String carName = args[1].toLowerCase();
-                if (!plugin.getAPIHandler().getSubVehicleTypes().containsKey(carName)) {
+                if (!plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().containsKey(carName)) {
                     sender.sendMessage("Vehicle " + args[1].toLowerCase() + " does not exist");
                     return false;
                 }
@@ -47,7 +51,7 @@ public class VehiclesCommand implements CommandExecutor {
                     }
                     player = p;
                 }
-                IVehicle iVehicle = plugin.getAPIHandler().getSubVehicleTypes().get(carName);
+                IVehicle iVehicle = plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().get(carName);
                 iVehicle.spawn(plugin, carName, player.getLocation());
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;
@@ -59,9 +63,5 @@ public class VehiclesCommand implements CommandExecutor {
                 break;
         }
         return false;
-    }
-
-    public VehiclesCommand(Vehicles plugin) {
-        this.plugin = plugin;
     }
 }

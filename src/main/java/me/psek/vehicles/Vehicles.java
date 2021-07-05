@@ -9,11 +9,13 @@ import me.psek.vehicles.handlers.data.VehicleSaver;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
+import me.psek.vehicles.listeners.ItemHeldListener;
 import me.psek.vehicles.listeners.KickListener;
 import me.psek.vehicles.listeners.QuitListener;
 import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
 import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
 import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
+import me.psek.vehicles.tickers.cartickers.MovementTicker;
 import me.psek.vehicles.vehicletypes.Car;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.NamespacedKey;
@@ -25,31 +27,35 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public final class Vehicles extends JavaPlugin {
+    public final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
+    public final List<IVehicle> vehicleTypes = new ArrayList<>();
+    public final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
+
     @Getter
     private ProtocolManager protocolManager;
     private VehicleSaver vehicleSaver;
     private APIHandler apiHandler;
-
     private NamespacedKey centerUUIDKey;
-    private NamespacedKey vehicleSortClassName;
     private NamespacedKey childUUIDsKey;
+    private NamespacedKey vehicleSortClassNameKey;
+    private INMS NMSInstance;
 
     @Override
     public void onEnable() {
-        registerNamespacedKeys();
-        registerListeners(new EntityInteractListener(centerUUIDKey), new QuitListener(centerUUIDKey), new KickListener(centerUUIDKey));
-        registerCommands();
-        registerTickers(vehicleSortClassName);
-
-        protocolManager = ProtocolLibrary.getProtocolManager();
-        registerPacketListeners(centerUUIDKey, vehicleSortClassName);
-
-        INMS NMSInstance = new Mediator().getNMS();
         apiHandler = new APIHandler(this);
+        NMSInstance = new Mediator(this).getNMS();
+        protocolManager = ProtocolLibrary.getProtocolManager();
+        registerNamespacedKeys();
+        registerListeners(new EntityInteractListener(centerUUIDKey),
+                new QuitListener(centerUUIDKey),
+                new KickListener(centerUUIDKey),
+                new ItemHeldListener(this, vehicleSortClassNameKey, centerUUIDKey));
+        registerCommands();
+        registerPacketListeners(centerUUIDKey, vehicleSortClassNameKey);
         vehicleSaver = new VehicleSaver();
-
-        apiHandler.getRegisteringAPI().registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassName, childUUIDsKey));
+        apiHandler.getRegisteringAPI().registerVehicleTypes(new Car(this, NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
         registerTestCar();
+        registerTickers();
         vehicleSaver.retrieveData(this);
     }
 
@@ -58,11 +64,19 @@ public final class Vehicles extends JavaPlugin {
         vehicleSaver.storeData(this);
     }
 
+    public APIHandler getAPIHandler() {
+        return apiHandler;
+    }
+
+    public INMS getNMSInstance() {
+        return NMSInstance;
+    }
+
     private void registerTestCar() {
         Car.Builder carType = Car.Builder.builder()
                 .name("lada")
-                .horsepower(100)
-                .brakingForce(20)
+                .horsepower(780)
+                .brakingForce(12050)
                 .gearRatios(Arrays.asList(
                         4.714,
                         3.143,
@@ -85,9 +99,9 @@ public final class Vehicles extends JavaPlugin {
                         new Vector(-2.5, 0.15, -2.35) ))
                 .gearCount(5)
                 .RPMs(Arrays.asList(
-                        10000,
-                        1200,
-                        8500
+                        9000,
+                        2200,
+                        7500
                 ))
                 .shiftTime(6*20)
                 .steeringSeatIndex(0)
@@ -95,9 +109,9 @@ public final class Vehicles extends JavaPlugin {
                 .gripFactor(0.78921)
                 .maxRedRPMTicks(45)
                 .drivetrainWheelCount(2)
-                .wheelRadius(0.33)
-                .tirePressure(2.9)
-                .vehicleMass(1500)
+                .tireRadius(0.33)
+                .tirePressure(3.4)
+                .vehicleMass(1670)
                 .build();
         Car.registerCarSubtype("lada", carType);
         for (IVehicle iVehicle : vehicleTypes) {
@@ -111,7 +125,7 @@ public final class Vehicles extends JavaPlugin {
 
     private void registerNamespacedKeys() {
         centerUUIDKey = new NamespacedKey(this, "centerUUID");
-        vehicleSortClassName = new NamespacedKey(this, "vehicleSortClassName");
+        vehicleSortClassNameKey = new NamespacedKey(this, "vehicleSortClassName");
         childUUIDsKey = new NamespacedKey(this, "childUUIDsKey");
     }
 
@@ -131,15 +145,8 @@ public final class Vehicles extends JavaPlugin {
         this.getCommand("vehicles").setExecutor(new VehiclesCommand(this));
     }
 
-    private void registerTickers(NamespacedKey vehicleSortClassName) {
-        new MovementDataTicker(this, centerUUIDKey);
+    private void registerTickers() {
+        new MovementDataTicker(this, centerUUIDKey, vehicleSortClassNameKey);
+        new MovementTicker(this, NMSInstance);
     }
-
-    public APIHandler getAPIHandler() {
-        return apiHandler;
-    }
-
-    public final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
-    public final List<IVehicle> vehicleTypes = new ArrayList<>();
-    public final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
 }

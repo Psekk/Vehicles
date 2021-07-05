@@ -15,7 +15,7 @@ public class QuitListener implements Listener {
     private final NamespacedKey centerUUIDKey;
 
     @EventHandler(priority= EventPriority.HIGHEST)
-    public void onQuit(PlayerQuitEvent event) {
+    public void event(PlayerQuitEvent event) {
         if (!event.getPlayer().isInsideVehicle()) {
             return;
         }

@@ -10,6 +10,11 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class Registering {
     private final Vehicles plugin;
+
+    public Registering(Vehicles plugin) {
+        this.plugin = plugin;
+    }
+
     public void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
         plugin.spawnedVehicles.put(UUIDUtils.bytesToUUID(iSpawnedVehicle.getCenterUUID()), iSpawnedVehicle);
     }
@@ -24,9 +29,5 @@ public class Registering {
 
     public void registerSubVehicleType(String name, IVehicle type) {
         plugin.subVehicleTypes.put(name, type);
-    }
-
-    public Registering(Vehicles plugin) {
-        this.plugin = plugin;
     }
 }
