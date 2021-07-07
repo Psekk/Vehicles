@@ -1,6 +1,7 @@
 package me.psek.vehicles.commands;
 
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -38,7 +39,7 @@ public class VehiclesCommand implements CommandExecutor {
                     return false;
                 }
                 String carName = args[1].toLowerCase();
-                if (!plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().containsKey(carName)) {
+                if (!DataAPI.getSubVehicleTypes().containsKey(carName)) {
                     sender.sendMessage("Vehicle " + args[1].toLowerCase() + " does not exist");
                     return false;
                 }
@@ -51,7 +52,7 @@ public class VehiclesCommand implements CommandExecutor {
                     }
                     player = p;
                 }
-                IVehicle iVehicle = plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().get(carName);
+                IVehicle iVehicle = DataAPI.getSubVehicleTypes().get(carName);
                 iVehicle.spawn(plugin, carName, player.getLocation());
                 sender.sendMessage("Spawned ur bunda ride at dem playuurrrr");
                 return true;

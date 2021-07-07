@@ -1,6 +1,7 @@
 package me.psek.vehicles.handlers.data;
 
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.handlers.data.serialization.Serializer;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.vehicletypes.IVehicle;
@@ -17,7 +18,7 @@ public class VehicleSaver extends Serializer {
     @SuppressWarnings({"ignored", "ResultOfMethodCallIgnored"})
     public void storeData(Vehicles plugin) {
         String path = plugin.getDataFolder().getAbsolutePath() + "/data";
-        for (IVehicle vehicleType : plugin.getAPIHandler().getDataAPI().getVehicleTypes()) {
+        for (IVehicle vehicleType : DataAPI.getVehicleTypes()) {
             String serializedData = serialize(vehicleType.getSerializableData());
             File file = new File(path + "/" + "data." + vehicleType.getClass().getSimpleName().toLowerCase());
             file.getParentFile().mkdirs();
@@ -34,7 +35,7 @@ public class VehicleSaver extends Serializer {
 
     public void retrieveData(Vehicles plugin) {
         String path = plugin.getDataFolder().getAbsolutePath() + "/data";
-        for (IVehicle vehicleType : plugin.getAPIHandler().getDataAPI().getVehicleTypes()) {
+        for (IVehicle vehicleType : DataAPI.getVehicleTypes()) {
             try {
                 Path localPath = Path.of(path, "data.",  vehicleType.getClass().getSimpleName().toLowerCase());
                 if (!Files.exists(localPath)) {

@@ -1,6 +1,7 @@
 package me.psek.vehicles.tickers.cartickers;
 
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.MathUtils;
@@ -34,12 +35,12 @@ public class MovementDataTicker {
 
                 }
                 UUID centerUUID = UUIDUtils.bytesToUUID(player.getVehicle().getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
-                SpawnedCarData spawnedCarData = (SpawnedCarData) plugin.getAPIHandler().getDataAPI().getSpawnedVehicles().get(centerUUID);
+                SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
                 Car.Builder builder = Car.getCarSubTypes().get(player.getVehicle().getPersistentDataContainer().get(vehicleSortClassNameKey, PersistentDataType.STRING));
                 double speed = spawnedCarData.getCurrentSpeed();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        TextComponent.fromLegacyText(MathUtils.precisionRoundNumber(100, speed * 14) + " km/h " +
-                                MathUtils.precisionRoundNumber(1, spawnedCarData.getCurrentRPM() * 12 - builder.getRPMs().get(1) * 12 + builder.getRPMs().get(1)) + "/min"));
+                        TextComponent.fromLegacyText(MathUtils.precisionRoundNumber(100, speed * 10) + " km/h " +
+                                MathUtils.precisionRoundNumber(1, spawnedCarData.getCurrentRPM() * 9 - builder.getRPMs().get(1) * 9 + builder.getRPMs().get(1)) + "/min"));
             }
         }, 1L, 1L);
     }

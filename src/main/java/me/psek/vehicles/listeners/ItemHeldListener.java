@@ -1,10 +1,11 @@
 package me.psek.vehicles.listeners;
 
 import me.psek.vehicles.Vehicles;
-import me.psek.vehicles.api.Data;
+import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.UUIDUtils;
 import me.psek.vehicles.vehicletypes.Car;
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -13,12 +14,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.UUID;
+import java.util.*;
 
 public class ItemHeldListener implements Listener {
     private final NamespacedKey vehicleSortClassNameKey;
     private final NamespacedKey centerUUIDKey;
-    private final Data dataAPI;
+    private final Vehicles plugin;
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void event(PlayerItemHeldEvent event) {
@@ -33,18 +34,21 @@ public class ItemHeldListener implements Listener {
 
     private void carShiftEvent(PlayerItemHeldEvent event, Entity vehicle) {
         UUID centerUUID = UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
-        SpawnedCarData spawnedCarData = (SpawnedCarData) dataAPI.getSpawnedVehicles().get(centerUUID);
+        SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
         Car.Builder builder = Car.getCarSubTypes().get(spawnedCarData.getName());
         if (builder.getGearCount() < event.getNewSlot()) {
             return;
         }
-        spawnedCarData.setCurrentGear(event.getNewSlot());
-        System.out.println("shifted to " + event.getNewSlot());
+        spawnedCarData.setShifting(true);
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, () -> {
+            spawnedCarData.setCurrentGear(event.getNewSlot());
+            spawnedCarData.setShifting(false);
+        }, builder.getShiftTime());
     }
 
     public ItemHeldListener(Vehicles plugin, NamespacedKey vehicleSortClassNameKey, NamespacedKey centerUUIDKey) {
         this.vehicleSortClassNameKey = vehicleSortClassNameKey;
         this.centerUUIDKey = centerUUIDKey;
-        dataAPI = plugin.getAPIHandler().getDataAPI();
+        this.plugin = plugin;
     }
 }

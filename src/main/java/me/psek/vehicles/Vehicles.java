@@ -3,7 +3,7 @@ package me.psek.vehicles;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import lombok.Getter;
-import me.psek.vehicles.api.APIHandler;
+import me.psek.vehicles.api.RegisteringAPI;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.handlers.data.VehicleSaver;
 import me.psek.vehicles.handlers.nms.INMS;
@@ -27,14 +27,16 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public final class Vehicles extends JavaPlugin {
-    public final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
+    @Getter
+    private static Vehicles instance;
+    public static final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
+
     public final List<IVehicle> vehicleTypes = new ArrayList<>();
     public final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
 
     @Getter
     private ProtocolManager protocolManager;
     private VehicleSaver vehicleSaver;
-    private APIHandler apiHandler;
     private NamespacedKey centerUUIDKey;
     private NamespacedKey childUUIDsKey;
     private NamespacedKey vehicleSortClassNameKey;
@@ -42,7 +44,7 @@ public final class Vehicles extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        apiHandler = new APIHandler(this);
+        instance = this;
         NMSInstance = new Mediator(this).getNMS();
         protocolManager = ProtocolLibrary.getProtocolManager();
         registerNamespacedKeys();
@@ -53,7 +55,7 @@ public final class Vehicles extends JavaPlugin {
         registerCommands();
         registerPacketListeners(centerUUIDKey, vehicleSortClassNameKey);
         vehicleSaver = new VehicleSaver();
-        apiHandler.getRegisteringAPI().registerVehicleTypes(new Car(this, NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
+        RegisteringAPI.registerVehicleTypes(new Car(this, NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
         registerTestCar();
         registerTickers();
         vehicleSaver.retrieveData(this);
@@ -62,30 +64,23 @@ public final class Vehicles extends JavaPlugin {
     @Override
     public void onDisable() {
         vehicleSaver.storeData(this);
-    }
-
-    public APIHandler getAPIHandler() {
-        return apiHandler;
-    }
-
-    public INMS getNMSInstance() {
-        return NMSInstance;
+        instance = null;
     }
 
     private void registerTestCar() {
         Car.Builder carType = Car.Builder.builder()
                 .name("lada")
-                .horsepower(780)
-                .brakingForce(12050)
+                .horsepower(100)
+                .brakingForce(2750)
                 .gearRatios(Arrays.asList(
-                        4.714,
-                        3.143,
-                        2.106,
-                        1.667,
-                        1.285,
+                        5.714,
+                        4.143,
+                        3.106,
+                        2.1,
+                        1.6285,
                         1.000,
                         0.839,
-                        0.667
+                        0.567
                         ))
                 .seatCount(5)
                 .seatPositions(Arrays.asList(
@@ -97,13 +92,13 @@ public final class Vehicles extends JavaPlugin {
                 .boundingBoxVectors(Arrays.asList(
                         new Vector(2.5, 1, 2.3),
                         new Vector(-2.5, 0.15, -2.35) ))
-                .gearCount(5)
+                .gearCount(7)
                 .RPMs(Arrays.asList(
                         9000,
-                        2200,
+                        1100,
                         7500
                 ))
-                .shiftTime(6*20)
+                .shiftTime(7)
                 .steeringSeatIndex(0)
                 .isAutomatic(false)
                 .gripFactor(0.78921)
@@ -118,7 +113,7 @@ public final class Vehicles extends JavaPlugin {
             if (!iVehicle.getClass().getSimpleName().equalsIgnoreCase("car")) {
                 continue;
             }
-            apiHandler.getRegisteringAPI().registerSubVehicleType("lada", iVehicle);
+            RegisteringAPI.registerSubVehicleType("lada", iVehicle);
             break;
         }
     }

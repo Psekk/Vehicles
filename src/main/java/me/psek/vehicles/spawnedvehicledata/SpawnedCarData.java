@@ -21,6 +21,10 @@ public class SpawnedCarData implements ISpawnedVehicle {
     @Setter
     private double currentSpeed = 0D;
 
+    @Getter
+    @Setter
+    private boolean isShifting = false;
+
     @Override
     public double getCurrentSpeed() {
         return currentSpeed;

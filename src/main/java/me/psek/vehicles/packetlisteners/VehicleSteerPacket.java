@@ -6,6 +6,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import me.psek.vehicles.Vehicles;
+import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -22,7 +23,7 @@ public class VehicleSteerPacket {
     }
 
     private IVehicle getVehicleInstance(String name) {
-        return plugin.getAPIHandler().getDataAPI().getSubVehicleTypes().get(name);
+        return DataAPI.getSubVehicleTypes().get(name);
     }
 
     private void onVehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {

@@ -1,7 +1,5 @@
 package me.psek.vehicles.handlers.physics;
 
-import me.psek.vehicles.utility.MathUtils;
-
 @SuppressWarnings("unused")
 public class CarPhysics {
     /**

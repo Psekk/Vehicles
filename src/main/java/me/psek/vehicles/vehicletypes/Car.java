@@ -2,8 +2,8 @@ package me.psek.vehicles.vehicletypes;
 
 import lombok.Getter;
 import me.psek.vehicles.Vehicles;
-import me.psek.vehicles.api.Data;
-import me.psek.vehicles.api.Registering;
+import me.psek.vehicles.api.DataAPI;
+import me.psek.vehicles.api.RegisteringAPI;
 import me.psek.vehicles.handlers.data.serializabledata.SerializableSpawnedCarData;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
@@ -33,16 +33,12 @@ public class Car implements IVehicle {
     private final NamespacedKey childUUIDsKey;
     private final NamespacedKey centerUUIDKey;
     private final NamespacedKey vehicleSortClassNameKey;
-    private final Registering registeringAPI;
-    private final Data dataAPI;
 
     public Car(Vehicles plugin, INMS NMSInstance, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassNameKey, NamespacedKey childUUIDsKey) {
         this.NMSInstance = NMSInstance;
         this.centerUUIDKey = centerUUIDKey;
         this.vehicleSortClassNameKey = vehicleSortClassNameKey;
         this.childUUIDsKey = childUUIDsKey;
-        registeringAPI = plugin.getAPIHandler().getRegisteringAPI();
-        dataAPI = plugin.getAPIHandler().getDataAPI();
     }
 
     @Override
@@ -77,42 +73,41 @@ public class Car implements IVehicle {
         SpawnedCarData spawnedCarData =
                 new SpawnedCarData(this, carSubType.getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), children, steererUUID, subCarData.isElectric(), carSubType.getRPMs().get(1));
         allSpawnedCars.add(spawnedCarData);
-        registeringAPI.registerSpawnedVehicle(spawnedCarData);
+        RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
     }
 
     @Override
     public void movementHandler(Vehicles plugin, Entity vehicle, Player player, float forwards, float sideways, boolean flag1, boolean flag2) {
         Builder builder = carSubTypes.get(vehicle.getPersistentDataContainer().get(vehicleSortClassNameKey, PersistentDataType.STRING));
         SpawnedCarData spawnedCarData =
-                (SpawnedCarData) dataAPI.getSpawnedVehicles().get(UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY)));
-        UUID centerUUID = UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
+                (SpawnedCarData) DataAPI.getSpawnedVehicles().get(UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY)));
+        //UUID centerUUID = UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
+
         //todo refine this like... bruh wtf is this
-        if (forwards > 0) {
-            if (spawnedCarData.getCurrentGear() == 0) {
-                //todo add some sounds + particles (which are configurable)
-            } else {
-                if (spawnedCarData.getCurrentSpeed() < 0) {
-                    move(getBrakingDeceleration(builder.getBrakingForce(), builder.getVehicleMass()), NMSInstance, spawnedCarData, builder);
+        if (!spawnedCarData.isShifting()) {
+            if (forwards > 0) {
+                if (spawnedCarData.getCurrentGear() != 0) {
+                    if (spawnedCarData.getCurrentSpeed() < 0) {
+                        move(getBrakingDeceleration(builder.getBrakingForce(), builder.getVehicleMass()), NMSInstance, spawnedCarData, builder);
+                    } else {
+                        move(getForwardAcceleration(spawnedCarData, builder), NMSInstance, spawnedCarData, builder);
+                    }
                 } else {
-                    move(getForwardAcceleration(spawnedCarData, builder), NMSInstance, spawnedCarData, builder);
+                    //todo add some sounds + particles (which are configurable)
+                    changeRPM(builder, spawnedCarData);
+                }
+            } else if (forwards < 0) {
+                if (spawnedCarData.getCurrentSpeed() > 0) {
+                    move(MathUtils.flipNumber(getBrakingDeceleration(builder.getBrakingForce(), builder.getVehicleMass())), NMSInstance, spawnedCarData, builder);
+                } else {
+
                 }
             }
-        } else if (forwards < 0) {
-            if (spawnedCarData.getCurrentSpeed() > 0) {
-                move(MathUtils.flipNumber(getBrakingDeceleration(builder.getBrakingForce(), builder.getVehicleMass())), NMSInstance, spawnedCarData, builder);
-            } else {
-
-            }
-        }
+        } else changeRPM(builder, spawnedCarData);
 
         if (sideways == 1) {
 
         }
-    }
-
-    @Override
-    public UUID getCenterUUID(Entity entity) {
-        return UUIDUtils.bytesToUUID(entity.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
     }
 
     @Override
@@ -146,7 +141,7 @@ public class Car implements IVehicle {
                 children[i] = Bukkit.getEntity(UUIDUtils.bytesToUUID(bytes[i]));
             }
             SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), data.getCenterUUID(), children, data.getSteererUUID(), data.isElectric(), data.getCurrentRPM());
-            registeringAPI.registerSpawnedVehicle(spawnedCarData);
+            RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
         }
     }
 
@@ -164,7 +159,7 @@ public class Car implements IVehicle {
         if (centerEntity == null) {
             return;
         }
-        double speed = spawnedCarData.getCurrentSpeed() / 3.6 + acceleration / 250;
+        double speed = spawnedCarData.getCurrentSpeed() / 3.6 + acceleration / 50;
         if (MathUtils.checkSignBitChange(spawnedCarData.getCurrentSpeed() / 3.6, speed) && spawnedCarData.getCurrentSpeed() / 3.6 != 0) {
             spawnedCarData.setCurrentSpeed(0);
             spawnedCarData.setCurrentRPM(builder.getRPMs().get(1));
@@ -185,11 +180,19 @@ public class Car implements IVehicle {
         if (entities == null) {
             return;
         }
-        spawnedCarData.setCurrentSpeed(spawnedCarData.getCurrentSpeed()+acceleration/250*3.6);
+        spawnedCarData.setCurrentSpeed(spawnedCarData.getCurrentSpeed()+acceleration/50*3.6);
+        changeRPM(builder, spawnedCarData);
+        TryAddMovingCar(centerEntity.getUniqueId(), entities);
+    }
+
+    //todo make dis better too lmfao
+    private static void changeRPM(Car.Builder builder, SpawnedCarData spawnedCarData) {
+        if (spawnedCarData.getCurrentGear() == 0) {
+            return;
+        }
         double engineRPM = getEngineRPM(spawnedCarData.getCurrentSpeed(),
                 builder.getTireRadius(), builder.getGearRatios().get(0)*builder.getGearRatios().get(spawnedCarData.getCurrentGear()), builder.getRPMs().get(1));
         spawnedCarData.setCurrentRPM(engineRPM);
-        TryAddMovingCar(centerEntity.getUniqueId(), entities);
     }
 
     private static List<Entity> moveChildren(Car.Builder builder, Entity centerEntity, SpawnedCarData spawnedCarData, INMS NMSInstance) {
@@ -237,17 +240,12 @@ public class Car implements IVehicle {
 
     private double getForwardAcceleration(SpawnedCarData spawnedCarData, Builder builder) {
         double engineTorque = getEngineTorque(builder.getHorsepower(), spawnedCarData.getCurrentRPM());
-        double frictionForce = getFrictionForce(spawnedCarData.getCurrentSpeed(),
-                builder.getTirePressure(),
-                builder.getTireRadius(),
-                9.81*builder.getVehicleMass())
-                *builder.getDrivetrainWheelCount();
         List<Double> gearRatios = builder.getGearRatios();
         double wheelForce = getDrivetrainForce(gearRatios.get(spawnedCarData.getCurrentGear())*gearRatios.get(0),
                 builder.getTireRadius(),
                 builder.getVehicleMass(),
                 engineTorque,
-                frictionForce);
+                0);
        return getAcceleration(wheelForce, builder.getVehicleMass())/20.0;
     }
 
