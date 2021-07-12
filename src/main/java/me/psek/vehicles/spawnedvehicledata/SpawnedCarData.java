@@ -4,16 +4,16 @@ import lombok.Getter;
 import lombok.Setter;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.entity.Entity;
-import org.bukkit.util.Vector;
 
-//todo change whole byte uuid storage system of center thing to just the entity
+import java.util.UUID;
+
 public class SpawnedCarData implements ISpawnedVehicle {
-    public SpawnedCarData(IVehicle vehicleType, String name, byte[] centerUUID, Entity[] childUUIDs, byte[] steererUUID, boolean electric, double currentRPM) {
+    public SpawnedCarData(IVehicle vehicleType, String name, UUID centerUUID, Entity[] children, UUID steererUUID, boolean electric, double currentRPM) {
         this.vehicleType = vehicleType;
         this.name = name;
         this.currentRPM = currentRPM;
         this.centerUUID = centerUUID;
-        this.children = childUUIDs;
+        this.children = children;
         this.steererUUID = steererUUID;
         this.electric = electric;
     }
@@ -37,10 +37,10 @@ public class SpawnedCarData implements ISpawnedVehicle {
         return name;
     }
 
-    private final byte[] centerUUID;
+    private final UUID centerUUID;
 
     @Override
-    public byte[] getCenterUUID() {
+    public UUID getCenterUUID() {
         return centerUUID;
     }
 
@@ -48,13 +48,10 @@ public class SpawnedCarData implements ISpawnedVehicle {
     private final IVehicle vehicleType;
 
     @Getter
-    private final byte[] steererUUID;
+    private final UUID steererUUID;
 
     @Getter
     private final Entity[] children;
-
-    @Getter
-    private Vector currentVector = new Vector(0, 0, 0);
 
     @Getter
     @Setter

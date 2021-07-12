@@ -13,6 +13,7 @@ import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
@@ -50,7 +51,7 @@ public class Car implements IVehicle {
         byte[] centerUUIDBytes = UUIDUtils.UUIDtoBytes(center.getUniqueId());
         List<Vector> seatPositions = subCarData.getSeatPositions();
         Entity[] children = new Entity[seatPositions.size()];
-        byte[] steererUUID = null;
+        UUID steererUUID = null;
         applySpawnModifiers(center);
         center.setGravity(true);
         for (int i = 0; i < subCarData.getSeatCount(); i++) {
@@ -59,7 +60,7 @@ public class Car implements IVehicle {
             seat.getPersistentDataContainer().set(vehicleSortClassNameKey, PersistentDataType.STRING, carSubTypes.get(name).getName());
             children[i] = seat;
             if (i == subCarData.steeringSeatIndex) {
-                steererUUID = UUIDUtils.UUIDtoBytes(seat.getUniqueId());
+                steererUUID = seat.getUniqueId();
             }
             applySpawnModifiers(seat);
         }
@@ -71,7 +72,7 @@ public class Car implements IVehicle {
         center.getPersistentDataContainer().set(vehicleSortClassNameKey, PersistentDataType.STRING, carSubTypes.get(name).getName());
         Builder carSubType = carSubTypes.get(name);
         SpawnedCarData spawnedCarData =
-                new SpawnedCarData(this, carSubType.getName(), UUIDUtils.UUIDtoBytes(center.getUniqueId()), children, steererUUID, subCarData.isElectric(), carSubType.getRPMs().get(1));
+                new SpawnedCarData(this, carSubType.getName(), center.getUniqueId(), children, steererUUID, subCarData.isElectric(), carSubType.getRPMs().get(1));
         allSpawnedCars.add(spawnedCarData);
         RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
     }
@@ -119,9 +120,9 @@ public class Car implements IVehicle {
             for (int i = 0; i < bytes.length; i++) {
                 bytes[i] = UUIDUtils.UUIDtoBytes(children[i].getUniqueId());
             }
-            tempList.add(new SerializableSpawnedCarData(scd.getCurrentSpeed(), scd.getName(), scd.getCenterUUID(),
-                    scd.getVehicleType().getClass().getSimpleName().toLowerCase(), scd.getSteererUUID(), bytes,
-                    scd.getCurrentGear(), scd.getGasAmount(), scd.isElectric(), scd.getCurrentRPM(), scd.getCurrentVector()));
+            tempList.add(new SerializableSpawnedCarData(scd.getCurrentSpeed(), scd.getName(), UUIDUtils.UUIDtoBytes(scd.getCenterUUID()),
+                    scd.getVehicleType().getClass().getSimpleName().toLowerCase(), UUIDUtils.UUIDtoBytes(scd.getSteererUUID()), bytes,
+                    scd.getCurrentGear(), scd.getGasAmount(), scd.isElectric(), scd.getCurrentRPM()));
         }
         return tempList;
     }
@@ -140,7 +141,7 @@ public class Car implements IVehicle {
             for (int i = 0; i < bytes.length; i++) {
                 children[i] = Bukkit.getEntity(UUIDUtils.bytesToUUID(bytes[i]));
             }
-            SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), data.getCenterUUID(), children, data.getSteererUUID(), data.isElectric(), data.getCurrentRPM());
+            SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), UUIDUtils.bytesToUUID(data.getCenterUUID()), children, UUIDUtils.bytesToUUID(data.getSteererUUID()), data.isElectric(), data.getCurrentRPM());
             RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
         }
     }
@@ -155,7 +156,7 @@ public class Car implements IVehicle {
     }
 
     public static void move(double acceleration, INMS NMSInstance, SpawnedCarData spawnedCarData, Builder builder) {
-        Entity centerEntity = Bukkit.getEntity(UUIDUtils.bytesToUUID(spawnedCarData.getCenterUUID()));
+        Entity centerEntity = Bukkit.getEntity(spawnedCarData.getCenterUUID());
         if (centerEntity == null) {
             return;
         }

@@ -10,7 +10,7 @@ import java.util.List;
 @SuppressWarnings("unused")
 public class RegisteringAPI {
     public static void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
-        Vehicles.spawnedVehicles.put(UUIDUtils.bytesToUUID(iSpawnedVehicle.getCenterUUID()), iSpawnedVehicle);
+        Vehicles.spawnedVehicles.put(iSpawnedVehicle.getCenterUUID(), iSpawnedVehicle);
     }
 
     public static void unregisterSpawnedVehicle(byte[] UUID) {

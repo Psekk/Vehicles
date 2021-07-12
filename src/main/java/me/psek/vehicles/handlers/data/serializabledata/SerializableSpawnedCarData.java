@@ -8,8 +8,7 @@ import java.io.Serializable;
 public class SerializableSpawnedCarData implements Serializable {
     public SerializableSpawnedCarData(double currentSpeed, String name, byte[] centerUUID,
                                       String vehicleTypeName, byte[] steererUUID, byte[][] childUUIDs,
-                                      int currentGear, double gasAmount, boolean electric, double currentRPM,
-                                      Vector currentVector) {
+                                      int currentGear, double gasAmount, boolean electric, double currentRPM) {
         this.currentSpeed = currentSpeed;
         this.name = name;
         this.centerUUID = centerUUID;
@@ -20,7 +19,6 @@ public class SerializableSpawnedCarData implements Serializable {
         this.currentRPM = currentRPM;
         this.gasAmount = gasAmount;
         this.electric = electric;
-        this.currentVector = currentVector;
     }
 
     @Getter
@@ -35,8 +33,6 @@ public class SerializableSpawnedCarData implements Serializable {
     private final String vehicleTypeName;
     @Getter
     private final byte[] steererUUID;
-    @Getter
-    private final Vector currentVector;
     @Getter
     private final byte[][] childUUIDs;
     @Getter
