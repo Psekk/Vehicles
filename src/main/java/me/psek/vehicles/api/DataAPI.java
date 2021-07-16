@@ -10,7 +10,7 @@ import java.util.UUID;
 
 public class DataAPI {
     public static Map<UUID, ISpawnedVehicle> getSpawnedVehicles() {
-        return Vehicles.getInstance().spawnedVehicles;
+        return Vehicles.spawnedVehicles;
     }
 
     public static List<IVehicle> getVehicleTypes() {

@@ -7,6 +7,7 @@ import me.psek.vehicles.vehicletypes.IVehicle;
 
 import java.util.List;
 
+//todo make an annotation thing for this so easier
 @SuppressWarnings("unused")
 public class RegisteringAPI {
     public static void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {

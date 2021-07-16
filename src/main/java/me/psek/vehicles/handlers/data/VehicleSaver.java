@@ -3,7 +3,6 @@ package me.psek.vehicles.handlers.data;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.handlers.data.serialization.Serializer;
-import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.vehicletypes.IVehicle;
 
 import java.io.File;
@@ -14,6 +13,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+//todo fix the not writing issue and the sometimes occurring exception
 public class VehicleSaver extends Serializer {
     @SuppressWarnings({"ignored", "ResultOfMethodCallIgnored"})
     public void storeData(Vehicles plugin) {
@@ -37,7 +37,7 @@ public class VehicleSaver extends Serializer {
         String path = plugin.getDataFolder().getAbsolutePath() + "/data";
         for (IVehicle vehicleType : DataAPI.getVehicleTypes()) {
             try {
-                Path localPath = Path.of(path, "data.",  vehicleType.getClass().getSimpleName().toLowerCase());
+                Path localPath = Path.of(path, "data.",  vehicleType.getClass().getSimpleName().toLowerCase() + "s");
                 if (!Files.exists(localPath)) {
                     continue;
                 }

@@ -14,6 +14,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Iterator;
 import java.util.UUID;
 
 public class MovementDataTicker {
@@ -23,16 +24,15 @@ public class MovementDataTicker {
 
     private void run(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassNameKey) {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            for (Player player : EntityInteractListener.inVehiclePlayers) {
+            Iterator<Player> iterator = EntityInteractListener.inVehiclePlayers.iterator();
+            while (iterator.hasNext()) {
+                Player player = iterator.next();
                 if (player.getVehicle() == null) {
-                    if (!EntityInteractListener.inVehiclePlayers.contains(player)) {
-                        continue;
-                    }
-                    EntityInteractListener.inVehiclePlayers.remove(player);
+                    iterator.remove();
                     continue;
                 }
-                if (player.getVehicle().getPersistentDataContainer().has(vehicleSortClassNameKey, PersistentDataType.STRING)) {
-
+                if (!player.getVehicle().getPersistentDataContainer().has(vehicleSortClassNameKey, PersistentDataType.STRING)) {
+                    continue;
                 }
                 UUID centerUUID = UUIDUtils.bytesToUUID(player.getVehicle().getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
                 SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
@@ -40,7 +40,7 @@ public class MovementDataTicker {
                 double speed = spawnedCarData.getCurrentSpeed();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacyText(MathUtils.precisionRoundNumber(100, speed * 10) + " km/h " +
-                                MathUtils.precisionRoundNumber(1, spawnedCarData.getCurrentRPM() * 9 - builder.getRPMs().get(1) * 9 + builder.getRPMs().get(1)) + "/min"));
+                                MathUtils.precisionRoundNumber(1, spawnedCarData.getCurrentRPM() * 9 - builder.getRPMs()[1] * 9 + builder.getRPMs()[1]) + "/min"));
             }
         }, 1L, 1L);
     }

@@ -2,6 +2,7 @@ package me.psek.vehicles;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import me.psek.vehicles.api.RegisteringAPI;
 import me.psek.vehicles.commands.VehiclesCommand;
@@ -10,8 +11,7 @@ import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.ItemHeldListener;
-import me.psek.vehicles.listeners.KickListener;
-import me.psek.vehicles.listeners.QuitListener;
+import me.psek.vehicles.listeners.JoinListener;
 import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
 import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
 import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
@@ -49,13 +49,12 @@ public final class Vehicles extends JavaPlugin {
         protocolManager = ProtocolLibrary.getProtocolManager();
         registerNamespacedKeys();
         registerListeners(new EntityInteractListener(centerUUIDKey),
-                new QuitListener(centerUUIDKey),
-                new KickListener(centerUUIDKey),
+                new JoinListener(centerUUIDKey),
                 new ItemHeldListener(this, vehicleSortClassNameKey, centerUUIDKey));
         registerCommands();
         registerPacketListeners(centerUUIDKey, vehicleSortClassNameKey);
         vehicleSaver = new VehicleSaver();
-        RegisteringAPI.registerVehicleTypes(new Car(this, NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
+        RegisteringAPI.registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
         registerTestCar();
         registerTickers();
         vehicleSaver.retrieveData(this);
@@ -64,6 +63,8 @@ public final class Vehicles extends JavaPlugin {
     @Override
     public void onDisable() {
         vehicleSaver.storeData(this);
+        spawnedVehicles.clear();
+        EntityInteractListener.inVehiclePlayers.clear();
         instance = null;
     }
 
@@ -71,8 +72,8 @@ public final class Vehicles extends JavaPlugin {
         Car.Builder carType = Car.Builder.builder()
                 .name("lada")
                 .horsepower(100)
-                .brakingForce(2750)
-                .gearRatios(Arrays.asList(
+                .brakingForce(4050)
+                .gearRatios(new double[] {
                         5.714,
                         4.143,
                         3.106,
@@ -81,23 +82,25 @@ public final class Vehicles extends JavaPlugin {
                         1.000,
                         0.839,
                         0.567
-                        ))
+                })
                 .seatCount(5)
-                .seatPositions(Arrays.asList(
+                .seatVectors(new Vector[] {
                         new Vector(1,-0.5,1),
                         new Vector(-1,-0.5,1),
                         new Vector(1,-0.3,-1),
                         new Vector(0,-0.3,-1),
-                        new Vector(-1,-0.3,-1) ))
-                .boundingBoxVectors(Arrays.asList(
+                        new Vector(-1,-0.3,-1)
+                })
+                .boundingBoxVectors(new Vector[] {
                         new Vector(2.5, 1, 2.3),
-                        new Vector(-2.5, 0.15, -2.35) ))
+                        new Vector(-2.5, 0.15, -2.35)
+                })
                 .gearCount(7)
-                .RPMs(Arrays.asList(
+                .RPMs(new double[] {
                         9000,
                         1100,
                         7500
-                ))
+                })
                 .shiftTime(7)
                 .steeringSeatIndex(0)
                 .isAutomatic(false)

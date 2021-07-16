@@ -39,6 +39,10 @@ public class SpawnedCarData implements ISpawnedVehicle {
 
     private final UUID centerUUID;
 
+    @Getter
+    @Setter
+    private double angle = 0.0;
+
     @Override
     public UUID getCenterUUID() {
         return centerUUID;
@@ -55,8 +59,7 @@ public class SpawnedCarData implements ISpawnedVehicle {
 
     @Getter
     @Setter
-    //todo change to 0 later on
-    private int currentGear = 1;
+    private int currentGear = 0;
 
     @Getter
     @Setter

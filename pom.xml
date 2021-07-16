@@ -11,7 +11,7 @@
 
     <name>Vehicles</name>
 
-    <description>car go brrrrrrrrrrrrrrrrrrrrrrrr</description>
+    <description>An advanced vehicle plugin</description>
     <properties>
         <java.version>11</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

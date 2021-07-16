@@ -18,15 +18,16 @@ public class MovementTicker {
         run(plugin, NMSInstance);
     }
 
-    //todo optimize some things to the bloody TryAdd thing
     private void run(Vehicles plugin, INMS NMSInstance) {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (Entity[] entities : Car.movingCars.values()) {
                 UUID centerEntityUUID = entities[0].getUniqueId();
                 SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerEntityUUID);
                 double currentSpeed = spawnedCarData.getCurrentSpeed();
-
-                if (currentSpeed > -0.01 && currentSpeed < 0.01) {
+                Car.Builder builder = Car.getCarSubTypes().get(spawnedCarData.getName());
+                double frictionForce = CarPhysics.getFrictionForce(currentSpeed, builder.getTirePressure(), builder.getTireRadius(), builder.getVehicleMass() * 9.81);
+                double deceleration = MathUtils.flipNumber(CarPhysics.getAcceleration(frictionForce, builder.getVehicleMass()) / 20.0)*3.6;
+                if (MathUtils.checkSignBitChange(currentSpeed, currentSpeed - deceleration)) {
                     entities[0].setVelocity(new Vector(0, 0, 0));
                     Car.movingCars.remove(centerEntityUUID);
                     spawnedCarData.setCurrentSpeed(0);
@@ -36,11 +37,7 @@ public class MovementTicker {
                     }
                     continue;
                 }
-
-                Car.Builder builder = Car.getCarSubTypes().get(spawnedCarData.getName());
-                double frictionForce = CarPhysics.getFrictionForce(currentSpeed, builder.getTirePressure(), builder.getTireRadius(), builder.getVehicleMass() * 9.81);
-                double deceleration = MathUtils.flipNumber(CarPhysics.getAcceleration(frictionForce, builder.getVehicleMass()) / 20.0)*3.5;
-                Car.move(deceleration, NMSInstance, spawnedCarData, builder);
+                Car.moveStraight(deceleration, NMSInstance, spawnedCarData, builder);
             }
         }, 1L, 1L);
     }

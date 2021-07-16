@@ -1,14 +1,14 @@
 package me.psek.vehicles.handlers.data.serializabledata;
 
 import lombok.Getter;
-import org.bukkit.util.Vector;
 
 import java.io.Serializable;
 
 public class SerializableSpawnedCarData implements Serializable {
     public SerializableSpawnedCarData(double currentSpeed, String name, byte[] centerUUID,
                                       String vehicleTypeName, byte[] steererUUID, byte[][] childUUIDs,
-                                      int currentGear, double gasAmount, boolean electric, double currentRPM) {
+                                      int currentGear, double gasAmount, boolean electric, double currentRPM,
+                                      double angle) {
         this.currentSpeed = currentSpeed;
         this.name = name;
         this.centerUUID = centerUUID;
@@ -19,10 +19,13 @@ public class SerializableSpawnedCarData implements Serializable {
         this.currentRPM = currentRPM;
         this.gasAmount = gasAmount;
         this.electric = electric;
+        this.angle = angle;
     }
 
     @Getter
     private final double currentSpeed;
+    @Getter
+    private final double angle;
     @Getter
     private final String name;
     @Getter
