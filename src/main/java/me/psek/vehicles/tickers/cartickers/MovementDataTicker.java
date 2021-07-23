@@ -37,6 +37,7 @@ public class MovementDataTicker {
                 UUID centerUUID = UUIDUtils.bytesToUUID(player.getVehicle().getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
                 SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
                 Car.Builder builder = Car.getCarSubTypes().get(player.getVehicle().getPersistentDataContainer().get(vehicleSortClassNameKey, PersistentDataType.STRING));
+                //todo look into the speed seeming incorrect (also fix the weird physics lol)
                 double speed = spawnedCarData.getCurrentSpeed();
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                         TextComponent.fromLegacyText(MathUtils.precisionRoundNumber(100, speed * 10) + " km/h " +

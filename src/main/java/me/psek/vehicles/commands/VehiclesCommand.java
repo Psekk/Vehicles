@@ -2,6 +2,7 @@ package me.psek.vehicles.commands;
 
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.api.DataAPI;
+import me.psek.vehicles.handlers.vehicleinformation.StandardVehicleInformation;
 import me.psek.vehicles.vehicletypes.IVehicle;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -24,6 +25,7 @@ public class VehiclesCommand implements CommandExecutor {
             return false;
         }
         if (args.length < 1) {
+            new StandardVehicleInformation(plugin);
             sender.sendMessage("Too little arguments");
             return false;
         }

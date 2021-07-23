@@ -13,9 +13,9 @@ public interface IVehicle {
 
     void movementHandler(Vehicles plugin, Entity vehicle, Player player, float forwards, float sideways, boolean flag1, boolean flag2);
 
-    List<? extends Serializable> getSerializableData();
+    Serializable[] getSerializableData();
 
-    Class<? extends Serializable> getSerializableClass();
+    Serializable getSerializableClass();
 
-    void loadFromData(Vehicles plugin, List<Object> input);
+    void loadFromData(Vehicles plugin, Object[] input);
 }

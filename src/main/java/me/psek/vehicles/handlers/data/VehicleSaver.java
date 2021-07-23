@@ -10,7 +10,6 @@ import java.io.FileWriter;
 import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 
 //todo fix the not writing issue and the sometimes occurring exception
@@ -42,10 +41,10 @@ public class VehicleSaver extends Serializer {
                     continue;
                 }
                 List<String> deserializedLines = Files.readAllLines(localPath);
-                Class<? extends Serializable> clazz = vehicleType.getSerializableClass();
-                List<Object> objects = new ArrayList<>();
-                for (String deserializedLine : deserializedLines) {
-                    objects.add(deserialize(deserializedLine, clazz));
+                Serializable clazz = vehicleType.getSerializableClass();
+                Object[] objects = new Object[deserializedLines.size()];
+                for (int i = 0; i < deserializedLines.size(); i++) {
+                    objects[i] = deserialize(deserializedLines.get(i), (Class<? extends Serializable>) clazz);
                 }
                 vehicleType.loadFromData(plugin, objects);
             } catch (Exception exception) {

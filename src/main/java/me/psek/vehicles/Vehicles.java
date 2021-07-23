@@ -2,11 +2,12 @@ package me.psek.vehicles;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import me.psek.vehicles.api.RegisteringAPI;
 import me.psek.vehicles.commands.VehiclesCommand;
+import me.psek.vehicles.handlers.config.ConfigHandler;
 import me.psek.vehicles.handlers.data.VehicleSaver;
+import me.psek.vehicles.handlers.database.Connection;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
@@ -27,9 +28,9 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public final class Vehicles extends JavaPlugin {
+    public static final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
     @Getter
     private static Vehicles instance;
-    public static final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
 
     public final List<IVehicle> vehicleTypes = new ArrayList<>();
     public final Map<String, IVehicle> subVehicleTypes = new HashMap<>();
@@ -41,23 +42,26 @@ public final class Vehicles extends JavaPlugin {
     private NamespacedKey childUUIDsKey;
     private NamespacedKey vehicleSortClassNameKey;
     private INMS NMSInstance;
+    private Car carInstance;
 
     @Override
     public void onEnable() {
         instance = this;
         NMSInstance = new Mediator(this).getNMS();
         protocolManager = ProtocolLibrary.getProtocolManager();
+        vehicleSaver = new VehicleSaver();
+        connectDatabase();
         registerNamespacedKeys();
         registerListeners(new EntityInteractListener(centerUUIDKey),
                 new JoinListener(centerUUIDKey),
                 new ItemHeldListener(this, vehicleSortClassNameKey, centerUUIDKey));
         registerCommands();
         registerPacketListeners(centerUUIDKey, vehicleSortClassNameKey);
-        vehicleSaver = new VehicleSaver();
-        RegisteringAPI.registerVehicleTypes(new Car(NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey));
+        registerBaseVehicles();
         registerTestCar();
         registerTickers();
         vehicleSaver.retrieveData(this);
+        new ConfigHandler(this);
     }
 
     @Override
@@ -66,6 +70,10 @@ public final class Vehicles extends JavaPlugin {
         spawnedVehicles.clear();
         EntityInteractListener.inVehiclePlayers.clear();
         instance = null;
+    }
+
+    private void connectDatabase() {
+        new Connection();
     }
 
     private void registerTestCar() {
@@ -99,7 +107,7 @@ public final class Vehicles extends JavaPlugin {
                 .RPMs(new double[] {
                         9000,
                         1100,
-                        7500
+                        6500
                 })
                 .shiftTime(7)
                 .steeringSeatIndex(0)
@@ -127,6 +135,12 @@ public final class Vehicles extends JavaPlugin {
         childUUIDsKey = new NamespacedKey(this, "childUUIDsKey");
     }
 
+    private void registerBaseVehicles() {
+        Car car = new Car(NMSInstance, centerUUIDKey, vehicleSortClassNameKey, childUUIDsKey);
+        carInstance = car;
+        RegisteringAPI.registerVehicleTypes(car);
+    }
+
     private void registerListeners(Listener... listeners) {
         PluginManager pluginManager = this.getServer().getPluginManager();
         for (Listener listener : listeners) {
@@ -145,6 +159,6 @@ public final class Vehicles extends JavaPlugin {
 
     private void registerTickers() {
         new MovementDataTicker(this, centerUUIDKey, vehicleSortClassNameKey);
-        new MovementTicker(this, NMSInstance);
+        new MovementTicker(this, NMSInstance, carInstance);
     }
 }

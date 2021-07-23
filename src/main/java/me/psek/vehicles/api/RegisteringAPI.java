@@ -6,6 +6,7 @@ import me.psek.vehicles.utility.UUIDUtils;
 import me.psek.vehicles.vehicletypes.IVehicle;
 
 import java.util.List;
+import java.util.UUID;
 
 //todo make an annotation thing for this so easier
 @SuppressWarnings("unused")
@@ -14,8 +15,8 @@ public class RegisteringAPI {
         Vehicles.spawnedVehicles.put(iSpawnedVehicle.getCenterUUID(), iSpawnedVehicle);
     }
 
-    public static void unregisterSpawnedVehicle(byte[] UUID) {
-        Vehicles.spawnedVehicles.remove(UUIDUtils.bytesToUUID(UUID));
+    public static void unregisterSpawnedVehicle(UUID UUID) {
+        Vehicles.spawnedVehicles.remove(UUID);
     }
 
     public static void registerVehicleTypes(IVehicle... vehicleTypes) {

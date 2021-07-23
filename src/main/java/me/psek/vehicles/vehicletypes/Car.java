@@ -9,20 +9,22 @@ import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
 import me.psek.vehicles.utility.MathUtils;
 import me.psek.vehicles.utility.UUIDUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.*;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
 
 import static me.psek.vehicles.handlers.physics.CarPhysics.*;
 
 public class Car implements IVehicle {
-
     public static final Map<UUID, Entity[]> movingCars = new HashMap<>();
 
     @Getter
@@ -43,25 +45,24 @@ public class Car implements IVehicle {
 
     @Override
     public void spawn(Vehicles plugin, String name, Location centerLocation) {
-        centerLocation.setYaw(0);
-        Builder subCarData = carSubTypes.get(name);
+        Builder carData = carSubTypes.get(name);
         World world = Objects.requireNonNull(centerLocation.getWorld());
         ArmorStand center = world.spawn(centerLocation, ArmorStand.class);
-        byte[] centerUUIDBytes = UUIDUtils.UUIDtoBytes(center.getUniqueId());
-        Vector[] seatPositions = subCarData.getSeatVectors();
-        Entity[] children = new Entity[seatPositions.length];
-        UUID steererUUID = null;
+        byte[] centerUUIDAsBytes = UUIDUtils.UUIDtoBytes(center.getUniqueId());
+        Vector[] seatVectors = carData.getSeatVectors();
+        Entity[] children = new Entity[seatVectors.length];
+        @Nullable UUID steererUUID = null;
         applySpawnModifiers(center);
         center.setGravity(true);
-        for (int i = 0; i < subCarData.getSeatCount(); i++) {
-            ArmorStand seat = world.spawn(centerLocation.clone().add(seatPositions[i]), ArmorStand.class);
-            seat.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDBytes);
-            seat.getPersistentDataContainer().set(vehicleSortClassNameKey, PersistentDataType.STRING, carSubTypes.get(name).getName());
-            children[i] = seat;
-            if (i == subCarData.steeringSeatIndex) {
-                steererUUID = seat.getUniqueId();
+        for (int i = 0; i < carData.getSeatCount(); i++) {
+            ArmorStand seatEntity = world.spawn(centerLocation.clone().add(seatVectors[i]), ArmorStand.class);
+            seatEntity.getPersistentDataContainer().set(centerUUIDKey, PersistentDataType.BYTE_ARRAY, centerUUIDAsBytes);
+            seatEntity.getPersistentDataContainer().set(vehicleSortClassNameKey, PersistentDataType.STRING, carSubTypes.get(name).getName());
+            children[i] = seatEntity;
+            if (i == carData.steeringSeatIndex) {
+                steererUUID = seatEntity.getUniqueId();
             }
-            applySpawnModifiers(seat);
+            applySpawnModifiers(seatEntity);
         }
         String[] childStrings = new String[children.length];
         for (int i = 0; i < children.length; i++) {
@@ -71,10 +72,9 @@ public class Car implements IVehicle {
         center.getPersistentDataContainer().set(vehicleSortClassNameKey, PersistentDataType.STRING, carSubTypes.get(name).getName());
         Builder carSubType = carSubTypes.get(name);
         SpawnedCarData spawnedCarData =
-                new SpawnedCarData(this, carSubType.getName(), center.getUniqueId(), children, steererUUID, subCarData.isElectric(), carSubType.getRPMs()[1]);
+                new SpawnedCarData(this, carSubType.getName(), center.getUniqueId(), center, children, steererUUID, carData.isElectric(), carSubType.getRPMs()[1]);
         allSpawnedCars.add(spawnedCarData);
         RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
-        spawnedCarData.setAngle(50);
     }
 
     @Override
@@ -82,7 +82,12 @@ public class Car implements IVehicle {
         Builder builder = carSubTypes.get(vehicle.getPersistentDataContainer().get(vehicleSortClassNameKey, PersistentDataType.STRING));
         SpawnedCarData spawnedCarData =
                 (SpawnedCarData) DataAPI.getSpawnedVehicles().get(UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY)));
-        //todo refine this like... bruh wtf is this
+
+        if (sideways != 0) {
+            moveSideways(sideways, spawnedCarData);
+        }
+
+        //todo refine this
         if (!spawnedCarData.isShifting()) {
             if (forwards > 0) {
                 if (spawnedCarData.getCurrentGear() != 0) {
@@ -103,43 +108,43 @@ public class Car implements IVehicle {
                 }
             }
         } else changeRPM(builder, spawnedCarData);
-
-        if (sideways == 1) {
-
-        }
     }
 
     @Override
-    public List<SerializableSpawnedCarData> getSerializableData() {
-        List<SerializableSpawnedCarData> tempList = new ArrayList<>();
-        for (SpawnedCarData scd : allSpawnedCars) {
-            Entity[] children = scd.getChildren();
+    public Serializable[] getSerializableData() {
+        SerializableSpawnedCarData[] temporarilyData = new SerializableSpawnedCarData[allSpawnedCars.size()];
+        int i = 0;
+        for (SpawnedCarData spawnedCarData : allSpawnedCars) {
+            Entity[] children = spawnedCarData.getChildren();
             byte[][] bytes = new byte[children.length][2];
-            for (int i = 0; i < bytes.length; i++) {
-                bytes[i] = UUIDUtils.UUIDtoBytes(children[i].getUniqueId());
+            for (int j = 0; j < bytes.length; j++) {
+                bytes[j] = UUIDUtils.UUIDtoBytes(children[j].getUniqueId());
             }
-            tempList.add(new SerializableSpawnedCarData(scd.getCurrentSpeed(), scd.getName(), UUIDUtils.UUIDtoBytes(scd.getCenterUUID()),
-                    scd.getVehicleType().getClass().getSimpleName().toLowerCase(), UUIDUtils.UUIDtoBytes(scd.getSteererUUID()), bytes,
-                    scd.getCurrentGear(), scd.getGasAmount(), scd.isElectric(), scd.getCurrentRPM(), scd.getAngle()));
+            temporarilyData[i] = new SerializableSpawnedCarData(spawnedCarData.getCurrentSpeed(), spawnedCarData.getName(), UUIDUtils.UUIDtoBytes(spawnedCarData.getCenterUUID()),
+                    spawnedCarData.getVehicleType().getClass().getSimpleName().toLowerCase(), UUIDUtils.UUIDtoBytes(spawnedCarData.getSteererUUID()), bytes,
+                    spawnedCarData.getCurrentGear(), spawnedCarData.getGasAmount(), spawnedCarData.isElectric(), spawnedCarData.getCurrentRPM(), spawnedCarData.getAngle());
+            i++;
         }
-        return tempList;
+        return temporarilyData;
     }
 
     @Override
-    public Class<? extends Serializable> getSerializableClass() {
+    public Serializable getSerializableClass() {
         return SerializableSpawnedCarData.class;
     }
 
     @Override
-    public void loadFromData(Vehicles plugin, List<Object> input) {
+    public void loadFromData(Vehicles plugin, Object[] input) {
         for (Object object : input) {
             SerializableSpawnedCarData data = (SerializableSpawnedCarData) object;
-            byte[][] bytes = data.getChildUUIDs();
-            Entity[] children = new Entity[bytes.length];
-            for (int i = 0; i < bytes.length; i++) {
-                children[i] = Bukkit.getEntity(UUIDUtils.bytesToUUID(bytes[i]));
+            byte[][] childUUIDBytes = data.getChildUUIDBytes();
+            Entity[] children = new Entity[childUUIDBytes.length];
+            for (int i = 0; i < childUUIDBytes.length; i++) {
+                children[i] = Bukkit.getEntity(UUIDUtils.bytesToUUID(childUUIDBytes[i]));
             }
-            SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), UUIDUtils.bytesToUUID(data.getCenterUUID()), children, UUIDUtils.bytesToUUID(data.getSteererUUID()), data.isElectric(), data.getCurrentRPM());
+            UUID centerUUID = UUIDUtils.bytesToUUID(data.getCenterUUID());
+            SpawnedCarData spawnedCarData = new SpawnedCarData(this, data.getName(), centerUUID, Bukkit.getEntity(centerUUID), children,
+                    UUIDUtils.bytesToUUID(data.getSteererUUID()), data.isElectric(), data.getCurrentRPM());
             RegisteringAPI.registerSpawnedVehicle(spawnedCarData);
         }
     }
@@ -153,32 +158,35 @@ public class Car implements IVehicle {
         carSubTypes.remove(builder.getName());
     }
 
-    public static void moveStraight(double acceleration, INMS NMSInstance, SpawnedCarData spawnedCarData, Builder builder) {
-        Entity centerEntity = Bukkit.getEntity(spawnedCarData.getCenterUUID());
+    public void moveStraight(double acceleration, INMS NMSInstance, SpawnedCarData spawnedCarData, Builder builder) {
+        Entity centerEntity = spawnedCarData.getCenterEntity();
         if (centerEntity == null) {
+            RegisteringAPI.unregisterSpawnedVehicle(spawnedCarData.getCenterUUID());
             return;
         }
-        double speed = spawnedCarData.getCurrentSpeed() / 3.6 + acceleration / 50;
+        double speed = spawnedCarData.getCurrentSpeed() / 3.6 + acceleration/50;
         if (MathUtils.checkSignBitChange(spawnedCarData.getCurrentSpeed() / 3.6, speed) && spawnedCarData.getCurrentSpeed() / 3.6 != 0) {
             spawnedCarData.setCurrentSpeed(0);
             spawnedCarData.setCurrentRPM(builder.getRPMs()[1]);
             centerEntity.setVelocity(new Vector(0, 0, 0));
-            List<Entity> entities = moveChildren(builder, centerEntity, spawnedCarData, NMSInstance);
+            Entity[] entities = moveChildren(builder, centerEntity, spawnedCarData, NMSInstance);
             movingCars.remove(centerEntity.getUniqueId());
             if (entities == null) {
+                RegisteringAPI.unregisterSpawnedVehicle(spawnedCarData.getCenterUUID());
                 return;
             }
-            entities.forEach(entity -> entity.setGravity(true));
+            for (Entity entity : entities) {
+                entity.setGravity(true);
+            }
             return;
         }
-        System.out.println(centerEntity.getLocation().getYaw());
         double yaw = Math.toRadians(spawnedCarData.getAngle());
         Vector accelerationVector = new Vector(0, 0, speed).rotateAroundY(yaw);
-        System.out.println(accelerationVector);
         centerEntity.setGravity(true);
         centerEntity.setVelocity(accelerationVector);
-        List<Entity> entities = moveChildren(builder, centerEntity, spawnedCarData, NMSInstance);
+        Entity[] entities = moveChildren(builder, centerEntity, spawnedCarData, NMSInstance);
         if (entities == null) {
+            tryDeleteCar(spawnedCarData);
             return;
         }
         spawnedCarData.setCurrentSpeed(spawnedCarData.getCurrentSpeed()+acceleration/50*3.6);
@@ -186,24 +194,23 @@ public class Car implements IVehicle {
         TryAddMovingCar(centerEntity.getUniqueId(), entities);
     }
 
-    public static void moveSideways(double sidewaysValue, SpawnedCarData spawnedCarData) {
-        //spawnedCarData.setAngle(sidewaysValue*smth);
-        //todo make a physics thing for calculating steering force etc
+    public void moveSideways(double sidewaysValue, SpawnedCarData spawnedCarData) {
+        if (spawnedCarData.getCurrentSpeed() < 0.15 && spawnedCarData.getCurrentSpeed() > -0.15) {
+            return;
+        }
+        spawnedCarData.setAngle(sidewaysValue > 0 ? spawnedCarData.getAngle() + 1.25 : spawnedCarData.getAngle() - 1.25);
     }
 
-    private static List<Entity> moveChildren(Car.Builder builder, Entity centerEntity, SpawnedCarData spawnedCarData, INMS NMSInstance) {
+    private Entity[] moveChildren(Car.Builder builder, Entity centerEntity, SpawnedCarData spawnedCarData, INMS NMSInstance) {
         double yaw = Math.toRadians(spawnedCarData.getAngle());
         Vector[] seatPositions = builder.getSeatVectors();
         Vector centerVector = centerEntity.getLocation().toVector();
         Entity[] children = spawnedCarData.getChildren();
-        List<Entity> entities = new ArrayList<>();
-        entities.add(centerEntity);
-        entities.addAll(Arrays.asList(children));
+        Entity[] entities = (Entity[]) ArrayUtils.addAll(new Entity[] { centerEntity }, children);
         int i = 0;
         for (Entity entity : children) {
             if (entity == null || entity.isDead()) {
-                entities.forEach(Entity::remove);
-                movingCars.remove(centerEntity.getUniqueId());
+                tryDeleteCar(spawnedCarData);
                 return null;
             }
             Vector requiredVector = centerVector.clone().add(seatPositions[i].clone().rotateAroundY(yaw)).subtract(entity.getLocation().toVector());
@@ -215,8 +222,19 @@ public class Car implements IVehicle {
         return entities;
     }
 
-    //todo make dis better too lmfao
-    private static void changeRPM(Car.Builder builder, SpawnedCarData spawnedCarData) {
+    public void tryDeleteCar(SpawnedCarData spawnedCarData) {
+        Entity centerEntity = spawnedCarData.getCenterEntity();
+        Entity[] children = spawnedCarData.getChildren();
+        Entity[] entities = (Entity[]) ArrayUtils.addAll(new Entity[] { centerEntity }, children);
+        for (Entity e : entities) {
+            e.remove();
+        }
+        movingCars.remove(centerEntity.getUniqueId());
+        RegisteringAPI.unregisterSpawnedVehicle(spawnedCarData.getCenterUUID());
+    }
+
+    //todo improve this a lot
+    private void changeRPM(Car.Builder builder, SpawnedCarData spawnedCarData) {
         if (spawnedCarData.getCurrentGear() == 0) {
             return;
         }
@@ -233,14 +251,12 @@ public class Car implements IVehicle {
         NMSInstance.setNoClip(armorStand, true);
     }
 
-    private static void TryAddMovingCar(UUID centerUUID, List<Entity> entities) {
+    private void TryAddMovingCar(UUID centerUUID, Entity[] entities) {
         if (movingCars.containsKey(centerUUID)) {
             return;
         }
-        Entity[] entityArray = new Entity[entities.size()];
-        for (int i = 0; i < entityArray.length; i++) {
-            entityArray[i] = entities.get(i);
-        }
+        Entity[] entityArray = new Entity[entities.length];
+        System.arraycopy(entities, 0, entityArray, 0, entityArray.length);
         movingCars.put(centerUUID, entityArray);
     }
 
@@ -264,22 +280,15 @@ public class Car implements IVehicle {
         private final double brakingForce;
         private final int seatCount;
         private final int wheelCount;
-        //todo make this an array
         private final Vector[] seatVectors;
+        //todo add bounding boxes for collision detection
         private final Vector[] boundingBoxVectors;
+        //todo add tire armor stand placement and turning
+        private final Vector[] tireVectors;
         private final int gearCount;
         private final int shiftTime;
         private final double tireRadius;
-        /*
-         * 0: max RPM on meter
-         * 1: min RPM
-         * 2: red zone of RPM
-         */
         private final double[] RPMs;
-        /*
-         * note: should match the amount of gears - size of list = gears
-         * each entry should be the amount the RPM increases per time they accelerate (in RPM)
-         */
         private final int steeringSeatIndex;
         private final boolean isAutomatic;
         private final double[] gearRatios;
@@ -288,5 +297,6 @@ public class Car implements IVehicle {
         private final double gripFactor;
         private final int maxRedRPMTicks;
         private final boolean electric;
+        private final boolean RPMLimiter;
     }
 }

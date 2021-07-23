@@ -14,7 +14,7 @@ public class SerializableSpawnedCarData implements Serializable {
         this.centerUUID = centerUUID;
         this.vehicleTypeName = vehicleTypeName;
         this.steererUUID = steererUUID;
-        this.childUUIDs = childUUIDs;
+        this.childUUIDBytes = childUUIDs;
         this.currentGear = currentGear;
         this.currentRPM = currentRPM;
         this.gasAmount = gasAmount;
@@ -37,7 +37,7 @@ public class SerializableSpawnedCarData implements Serializable {
     @Getter
     private final byte[] steererUUID;
     @Getter
-    private final byte[][] childUUIDs;
+    private final byte[][] childUUIDBytes;
     @Getter
     private final int currentGear;
     @Getter

@@ -8,7 +8,7 @@ import org.bukkit.entity.Entity;
 import java.util.UUID;
 
 public class SpawnedCarData implements ISpawnedVehicle {
-    public SpawnedCarData(IVehicle vehicleType, String name, UUID centerUUID, Entity[] children, UUID steererUUID, boolean electric, double currentRPM) {
+    public SpawnedCarData(IVehicle vehicleType, String name, UUID centerUUID, Entity centerEntity, Entity[] children, UUID steererUUID, boolean electric, double currentRPM) {
         this.vehicleType = vehicleType;
         this.name = name;
         this.currentRPM = currentRPM;
@@ -16,6 +16,7 @@ public class SpawnedCarData implements ISpawnedVehicle {
         this.children = children;
         this.steererUUID = steererUUID;
         this.electric = electric;
+        this.centerEntity = centerEntity;
     }
 
     @Setter
@@ -38,6 +39,9 @@ public class SpawnedCarData implements ISpawnedVehicle {
     }
 
     private final UUID centerUUID;
+
+    @Getter
+    private final Entity centerEntity;
 
     @Getter
     @Setter

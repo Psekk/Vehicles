@@ -14,11 +14,11 @@ import org.bukkit.util.Vector;
 import java.util.UUID;
 
 public class MovementTicker {
-    public MovementTicker(Vehicles plugin, INMS NMSInstance) {
-        run(plugin, NMSInstance);
+    public MovementTicker(Vehicles plugin, INMS NMSInstance, Car carInstance) {
+        run(plugin, NMSInstance, carInstance);
     }
 
-    private void run(Vehicles plugin, INMS NMSInstance) {
+    private void run(Vehicles plugin, INMS NMSInstance, Car carInstance) {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (Entity[] entities : Car.movingCars.values()) {
                 UUID centerEntityUUID = entities[0].getUniqueId();
@@ -37,7 +37,7 @@ public class MovementTicker {
                     }
                     continue;
                 }
-                Car.moveStraight(deceleration, NMSInstance, spawnedCarData, builder);
+                carInstance.moveStraight(deceleration, NMSInstance, spawnedCarData, builder);
             }
         }, 1L, 1L);
     }

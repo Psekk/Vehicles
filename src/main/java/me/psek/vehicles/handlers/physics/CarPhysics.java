@@ -44,7 +44,7 @@ public class CarPhysics {
      * @return friction force working against the car (N)
      */
     public static double getFrictionForce(double velocity, double tirePressure, double wheelRadius, double gravityForce) {
-        double Crr = 0.005+1/tirePressure*(0.001+0.0095*Math.pow(velocity/100.0, 2));
+        double Crr = 0.005+1/tirePressure*(0.001+0.0095*Math.pow(velocity/10.0, 2)); // divided by 10 instead of 100 since the display speed is 10x faster so the friction should also take that into account
         return Crr*gravityForce/wheelRadius;
     }
 
