@@ -19,7 +19,7 @@ public class EntityInteractListener implements Listener {
     private final NamespacedKey centerUUIDKey;
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void event(PlayerInteractAtEntityEvent event) {
+    public void listener(PlayerInteractAtEntityEvent event) {
         if (!event.getRightClicked().getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) {
             return;
         }

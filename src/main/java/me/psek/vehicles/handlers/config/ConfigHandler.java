@@ -8,19 +8,30 @@ import java.io.File;
 
 public class ConfigHandler {
     private @Nullable File configurationFile;
+    private @Nullable YamlConfiguration yamlConfiguration;
+
+    public ConfigHandler(Vehicles plugin) {
+        reloadConfig(plugin);
+    }
 
     public void reloadConfig(Vehicles plugin) {
         if (configurationFile == null) {
             configurationFile = new File(plugin.getDataFolder(), "config.yml");
         }
+
         if (!configurationFile.exists()) {
             plugin.saveResource("config.yml", false);
         }
-        YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configurationFile);
-
+        yamlConfiguration = YamlConfiguration.loadConfiguration(configurationFile);
     }
 
-    public ConfigHandler(Vehicles plugin) {
-        reloadConfig(plugin);
+    @SuppressWarnings({"unchecked", "ConstantConditions"})
+    @Nullable
+    public <T> T get(String path) {
+        Object object = yamlConfiguration.get(path);
+        if (object == null) {
+            return null;
+        }
+        return (T) object;
     }
 }

@@ -1,7 +1,11 @@
-package me.psek.vehicles.utility;
+package me.psek.vehicles.psekutils;
 
 @SuppressWarnings("unused")
 public class MathUtils {
+    private MathUtils() {
+        throw new UnsupportedOperationException();
+    }
+
     public static double flipNumber(double input) {
         return input*-1;
     }

@@ -1,0 +1,44 @@
+vehicles:
+  Q5:
+    vehicle:
+      type: car
+      display_name: Q5
+      mass: 1850
+      seat_offsets:
+        - [1, -0.5, 1]
+        - [-1, -0.5, 1]
+        - [1, -0.3, -1]
+        - [0, -0.3, -1]
+        - [-1, -0.3, -1]
+      bounding_box_offsets:
+        - [2.5, 1, 2.3]
+        - [-2.5, 0.15, -2.35]
+    tires:
+      radius: 0.37
+      pressure: 2.27
+      grip_factor: 0.8
+      offset:
+        - [1.15, 0.3, 1.3]
+        - [-1.15, 0.3, 1.3]
+        - [1.15, 0.3, -1.3]
+        - [-1.15, 0.3, -1.3]
+    drive_train:
+      horsepower: 250
+      braking_force: 6000
+      automatic_gearbox: true
+      drive_train_wheel_count: 4
+      gear_ratios:
+        - 5.714
+        - 4.143
+        - 3.106
+        - 2.1
+        - 1.6285
+        - 1.0
+        - 0.839
+        - 0.567
+      rpm:
+        min_rpm: 1000
+        warning_rpm: 7000
+        dangerous_rpm: 8000
+        max_dangerous_rpm_ticks: 60
+      shift_time: 0.15

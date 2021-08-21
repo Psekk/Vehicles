@@ -3,9 +3,9 @@ package me.psek.vehicles.tickers.cartickers;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.listeners.EntityInteractListener;
-import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
-import me.psek.vehicles.utility.MathUtils;
-import me.psek.vehicles.utility.UUIDUtils;
+import me.psek.vehicles.vehicleentites.CarEntity;
+import me.psek.vehicles.psekutils.MathUtils;
+import me.psek.vehicles.psekutils.UUIDUtils;
 import me.psek.vehicles.vehicletypes.Car;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -35,7 +35,7 @@ public class MovementDataTicker {
                     continue;
                 }
                 UUID centerUUID = UUIDUtils.bytesToUUID(player.getVehicle().getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
-                SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
+                CarEntity spawnedCarData = (CarEntity) DataAPI.getSpawnedVehicles().get(centerUUID);
                 Car.Builder builder = Car.getCarSubTypes().get(player.getVehicle().getPersistentDataContainer().get(vehicleSortClassNameKey, PersistentDataType.STRING));
                 //todo look into the speed seeming incorrect (also fix the weird physics lol)
                 double speed = spawnedCarData.getCurrentSpeed();

@@ -14,7 +14,7 @@ public class JoinListener implements Listener {
     private final NamespacedKey centerUUIDKey;
 
     @EventHandler(priority = EventPriority.HIGH)
-    public void event(PlayerJoinEvent event) {
+    public void listener(PlayerJoinEvent event) {
         if (!event.getPlayer().isInsideVehicle()) {
             return;
         }

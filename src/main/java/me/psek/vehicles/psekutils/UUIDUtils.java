@@ -1,4 +1,4 @@
-package me.psek.vehicles.utility;
+package me.psek.vehicles.psekutils;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;

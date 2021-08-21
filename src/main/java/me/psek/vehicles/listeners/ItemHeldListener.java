@@ -2,8 +2,8 @@ package me.psek.vehicles.listeners;
 
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.api.DataAPI;
-import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
-import me.psek.vehicles.utility.UUIDUtils;
+import me.psek.vehicles.vehicleentites.CarEntity;
+import me.psek.vehicles.psekutils.UUIDUtils;
 import me.psek.vehicles.vehicletypes.Car;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
@@ -28,13 +28,13 @@ public class ItemHeldListener implements Listener {
             return;
         }
         if (vehicle.getPersistentDataContainer().has(vehicleSortClassNameKey, PersistentDataType.STRING)) {
-            carShiftEvent(event, vehicle);
+            listener(event, vehicle);
         }
     }
 
-    private void carShiftEvent(PlayerItemHeldEvent event, Entity vehicle) {
+    private void listener(PlayerItemHeldEvent event, Entity vehicle) {
         UUID centerUUID = UUIDUtils.bytesToUUID(vehicle.getPersistentDataContainer().get(centerUUIDKey, PersistentDataType.BYTE_ARRAY));
-        SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerUUID);
+        CarEntity spawnedCarData = (CarEntity) DataAPI.getSpawnedVehicles().get(centerUUID);
         Car.Builder builder = Car.getCarSubTypes().get(spawnedCarData.getName());
         if (builder.getGearCount() < event.getNewSlot()) {
             return;

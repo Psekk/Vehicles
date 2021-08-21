@@ -1,8 +1,7 @@
 package me.psek.vehicles.api;
 
 import me.psek.vehicles.Vehicles;
-import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
-import me.psek.vehicles.utility.UUIDUtils;
+import me.psek.vehicles.vehicleentites.IVehicleEntity;
 import me.psek.vehicles.vehicletypes.IVehicle;
 
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.UUID;
 //todo make an annotation thing for this so easier
 @SuppressWarnings("unused")
 public class RegisteringAPI {
-    public static void registerSpawnedVehicle(ISpawnedVehicle iSpawnedVehicle) {
+    public static void registerSpawnedVehicle(IVehicleEntity iSpawnedVehicle) {
         Vehicles.spawnedVehicles.put(iSpawnedVehicle.getCenterUUID(), iSpawnedVehicle);
     }
 

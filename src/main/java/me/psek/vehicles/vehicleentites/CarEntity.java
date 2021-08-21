@@ -1,4 +1,4 @@
-package me.psek.vehicles.spawnedvehicledata;
+package me.psek.vehicles.vehicleentites;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,15 +7,15 @@ import org.bukkit.entity.Entity;
 
 import java.util.UUID;
 
-public class SpawnedCarData implements ISpawnedVehicle {
-    public SpawnedCarData(IVehicle vehicleType, String name, UUID centerUUID, Entity centerEntity, Entity[] children, UUID steererUUID, boolean electric, double currentRPM) {
+public class CarEntity implements IVehicleEntity {
+    public CarEntity(IVehicle vehicleType, String name, UUID centerUUID, Entity centerEntity, Entity[] children, UUID steererUUID, boolean electric, double currentRPM) {
         this.vehicleType = vehicleType;
         this.name = name;
         this.currentRPM = currentRPM;
         this.centerUUID = centerUUID;
         this.children = children;
         this.steererUUID = steererUUID;
-        this.electric = electric;
+        this.electric = electric; //this will require more physics YAY, ill rewrite the entire physics "engine" soon anyways
         this.centerEntity = centerEntity;
     }
 

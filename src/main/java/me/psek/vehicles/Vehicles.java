@@ -7,14 +7,13 @@ import me.psek.vehicles.api.RegisteringAPI;
 import me.psek.vehicles.commands.VehiclesCommand;
 import me.psek.vehicles.handlers.config.ConfigHandler;
 import me.psek.vehicles.handlers.data.VehicleSaver;
-import me.psek.vehicles.handlers.database.Connection;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.ItemHeldListener;
 import me.psek.vehicles.listeners.JoinListener;
 import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
-import me.psek.vehicles.spawnedvehicledata.ISpawnedVehicle;
+import me.psek.vehicles.vehicleentites.IVehicleEntity;
 import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
 import me.psek.vehicles.tickers.cartickers.MovementTicker;
 import me.psek.vehicles.vehicletypes.Car;
@@ -28,7 +27,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public final class Vehicles extends JavaPlugin {
-    public static final Map<UUID, ISpawnedVehicle> spawnedVehicles = new HashMap<>();
+    public static final Map<UUID, IVehicleEntity> spawnedVehicles = new HashMap<>();
     @Getter
     private static Vehicles instance;
 
@@ -43,6 +42,7 @@ public final class Vehicles extends JavaPlugin {
     private NamespacedKey vehicleSortClassNameKey;
     private INMS NMSInstance;
     private Car carInstance;
+    private ConfigHandler configHandler;
 
     @Override
     public void onEnable() {
@@ -58,10 +58,10 @@ public final class Vehicles extends JavaPlugin {
         registerCommands();
         registerPacketListeners(centerUUIDKey, vehicleSortClassNameKey);
         registerBaseVehicles();
-        registerTestCar();
+        registerTestCar(); //todo remove in production model
         registerTickers();
         vehicleSaver.retrieveData(this);
-        new ConfigHandler(this);
+        configHandler = new ConfigHandler(this);
     }
 
     @Override
@@ -73,7 +73,7 @@ public final class Vehicles extends JavaPlugin {
     }
 
     private void connectDatabase() {
-        new Connection();
+
     }
 
     private void registerTestCar() {
@@ -103,11 +103,17 @@ public final class Vehicles extends JavaPlugin {
                         new Vector(2.5, 1, 2.3),
                         new Vector(-2.5, 0.15, -2.35)
                 })
+                .tireVectors(new Vector[] {
+                        new Vector(1.15, 0.3, 1.3),
+                        new Vector(-1.15, 0.3, 1.3),
+                        new Vector(1.15, 0.3, -1.3),
+                        new Vector(-1.15, 0.3, -1.3)
+                })
                 .gearCount(7)
                 .RPMs(new double[] {
-                        9000,
+                        8000,
                         1100,
-                        6500
+                        7000
                 })
                 .shiftTime(7)
                 .steeringSeatIndex(0)

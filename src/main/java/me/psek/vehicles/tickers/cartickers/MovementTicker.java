@@ -4,8 +4,8 @@ import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.api.DataAPI;
 import me.psek.vehicles.handlers.nms.INMS;
 import me.psek.vehicles.handlers.physics.CarPhysics;
-import me.psek.vehicles.spawnedvehicledata.SpawnedCarData;
-import me.psek.vehicles.utility.MathUtils;
+import me.psek.vehicles.vehicleentites.CarEntity;
+import me.psek.vehicles.psekutils.MathUtils;
 import me.psek.vehicles.vehicletypes.Car;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -22,7 +22,7 @@ public class MovementTicker {
         Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
             for (Entity[] entities : Car.movingCars.values()) {
                 UUID centerEntityUUID = entities[0].getUniqueId();
-                SpawnedCarData spawnedCarData = (SpawnedCarData) DataAPI.getSpawnedVehicles().get(centerEntityUUID);
+                CarEntity spawnedCarData = (CarEntity) DataAPI.getSpawnedVehicles().get(centerEntityUUID);
                 double currentSpeed = spawnedCarData.getCurrentSpeed();
                 Car.Builder builder = Car.getCarSubTypes().get(spawnedCarData.getName());
                 double frictionForce = CarPhysics.getFrictionForce(currentSpeed, builder.getTirePressure(), builder.getTireRadius(), builder.getVehicleMass() * 9.81);

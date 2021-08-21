@@ -1,8 +1,8 @@
-package me.psek.vehicles.spawnedvehicledata;
+package me.psek.vehicles.vehicleentites;
 
 import java.util.UUID;
 
-public interface ISpawnedVehicle {
+public interface IVehicleEntity {
     double getCurrentSpeed();
     String getName();
     UUID getCenterUUID();

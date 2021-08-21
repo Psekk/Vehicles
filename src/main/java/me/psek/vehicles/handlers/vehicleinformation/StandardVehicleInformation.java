@@ -1,13 +1,6 @@
 package me.psek.vehicles.handlers.vehicleinformation;
 
-import me.psek.vehicles.Vehicles;
-
+//todo do the chat thing (conversation api)
 public class StandardVehicleInformation {
-    public void test(Vehicles plugin) {
 
-    }
-
-    public StandardVehicleInformation(Vehicles plugin) {
-        test(plugin);
-    }
 }
