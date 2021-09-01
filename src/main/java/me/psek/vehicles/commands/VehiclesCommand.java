@@ -25,8 +25,7 @@ public class VehiclesCommand implements CommandExecutor {
             return false;
         }
         if (args.length < 1) {
-            ChatMenuUtils.sendTestMenu(plugin, (Player) sender);
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {ChatMenuUtils.restorePlayerChat(plugin, (Player) sender);}, 100L);
+            ChatMenuUtils.test((Player) sender, plugin);
             sender.sendMessage("Too little arguments");
             return false;
         }

@@ -1,27 +1,29 @@
 package me.psek.vehicles.psekutils.chatmenu;
 
+import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import me.psek.vehicles.Vehicles;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.*;
+import me.psek.vehicles.psekutils.conversationapi.*;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.Bukkit;
-import org.bukkit.conversations.*;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Stack;
-
-import static org.bukkit.conversations.Prompt.END_OF_CONVERSATION;
+import java.util.stream.Collectors;
 
 public class ChatMenuUtils {
     public static Stack<Pair<Player, String>> chatBuffer = new Stack<>();
 
     public static void chatBufferAdd(Player player, String string) {
         Pair<Player, String> pair = new Pair<>(player, string);
-        if (chatBuffer.size() < 32) {
+        if (chatBuffer.size() < 256) {
             chatBuffer.push(pair);
             return;
         }
@@ -29,85 +31,55 @@ public class ChatMenuUtils {
         chatBuffer.push(pair);
     }
 
-    public static void clearPlayerChat(Vehicles plugin, Player player) {
-        ConversationFactory conversationFactory = new ConversationFactory(plugin);
-        conversationFactory.withModality(true);
-        conversationFactory.withLocalEcho(false);
-        Prompt prompt = new StringPrompt() {
-            @NotNull
+    public static void test(Player player, Vehicles plugin) {
+        assert player != null;
+        Prompt test = new Prompt() {
             @Override
-            public String getPromptText(@NotNull ConversationContext conversationContext) {
-                return "";
+            public @NotNull TextComponent getMessage(ConversationContext conversationContext) {
+                TextComponent textComponent = new TextComponent("superkewl hoverable and clickable text");
+                textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://sonarymc.com"));
+                textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text(
+                        conversationContext
+                                .getKnownInput()
+                                .get(conversationContext.getConversation().getPreviousPrompt())
+                                .get(0)
+                                .getSecondValue()
+                                .getText()) ));
+                return textComponent;
             }
 
-            @Nullable
             @Override
-            public Prompt acceptInput(@NotNull ConversationContext conversationContext, @Nullable String s) {
-                return END_OF_CONVERSATION;
-            }
-        };
-        conversationFactory.withFirstPrompt(prompt);
-        Conversation conversation = conversationFactory.buildConversation(player);
-        for (int i = 0; i < 250; i++) {
-            conversation.begin();
-            conversation.abandon();
-        }
-    }
-
-    public static void restorePlayerChat(Vehicles plugin, Player player) {
-        clearPlayerChat(plugin, player);
-        for (Pair<Player, String> pair : chatBuffer) {
-            ConversationFactory conversationFactory = new ConversationFactory(plugin);
-            conversationFactory.withModality(true);
-            conversationFactory.withLocalEcho(false);
-            Prompt prompt = new StringPrompt() {
-                @NotNull
-                @Override
-                public String getPromptText(@NotNull ConversationContext conversationContext) {
-                    return pair.getSecond();
-                }
-
-                @Nullable
-                @Override
-                public Prompt acceptInput(@NotNull ConversationContext conversationContext, @Nullable String s) {
-                    return END_OF_CONVERSATION;
-                }
-            };
-            Conversation conversation = conversationFactory.withFirstPrompt(prompt).buildConversation(player);
-            System.out.println(pair.getSecond());
-            conversation.begin();
-            conversation.abandon();
-        }
-        System.out.println(chatBuffer);
-    }
-
-    public static void sendTestMenu(Vehicles plugin, Player player) {
-        ConversationFactory conversationFactory = new ConversationFactory(plugin);
-        conversationFactory.withModality(true);
-        conversationFactory.withLocalEcho(false);
-        Prompt prompt = new StringPrompt() {
-            @NotNull
-            @Override
-            public String getPromptText(@NotNull ConversationContext conversationContext) {
-                HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, new Text("test hover"));
-                ClickEvent clickEvent = new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/lulz");
-                TextComponent textComponent = new TextComponent("test conversation");
-                textComponent.setHoverEvent(hoverEvent);
-                textComponent.setClickEvent(clickEvent);
-                textComponent.setBold(true);
-                textComponent.setColor(ChatColor.RED);
-                return textComponent.toLegacyText();
+            public boolean waitForUserInput(ConversationContext conversationContext) {
+                return false;
             }
 
-            @Nullable
             @Override
-            public Prompt acceptInput(@NotNull ConversationContext conversationContext, @Nullable String s) {
-                return END_OF_CONVERSATION;
+            public @Nullable Prompt nextPrompt(ConversationContext conversationContext) {
+                return Prompt.END_OF_CONVERSATION;
             }
         };
-        Conversation conversation = conversationFactory.withFirstPrompt(prompt).buildConversation(player);
-        conversation.begin();
-        conversation.abandon();
+        ConversationFactory conversationFactory = ConversationFactory.builder()
+                .captured(true)
+                .isolated(true)
+                .participants(Bukkit.getOnlinePlayers().stream().map(Conversable::getConversable).collect(Collectors.toList()))
+                .prefix(new TextComponent("[sonaryMC] "))
+                .firstPrompt(new Prompt() {
+                    @Override
+                    public @NotNull TextComponent getMessage(ConversationContext conversationContext) {
+                        return new TextComponent("beginning");
+                    }
+
+                    @Override
+                    public boolean waitForUserInput(ConversationContext conversationContext) {
+                        return true;
+                    }
+
+                    @Override
+                    public Prompt nextPrompt(ConversationContext conversationContext) {
+                        return test;
+                    }
+                }).build();
+        new Conversation(plugin, conversationFactory);
     }
 
     static {

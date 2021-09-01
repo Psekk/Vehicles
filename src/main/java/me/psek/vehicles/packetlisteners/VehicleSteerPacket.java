@@ -30,13 +30,9 @@ public class VehicleSteerPacket {
         plugin.getProtocolManager().addPacketListener(new PacketAdapter(plugin, ListenerPriority.HIGHEST, PacketType.Play.Client.STEER_VEHICLE) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
-                if (event.getPacketType() != PacketType.Play.Client.STEER_VEHICLE) {
-                    return;
-                }
+                if (event.getPacketType() != PacketType.Play.Client.STEER_VEHICLE) return;
                 Player player = event.getPlayer();
-                if (!Objects.requireNonNull(player.getVehicle()).getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) {
-                    return;
-                }
+                if (!Objects.requireNonNull(player.getVehicle()).getPersistentDataContainer().has(centerUUIDKey, PersistentDataType.BYTE_ARRAY)) return;
                 PacketContainer packet = event.getPacket();
                 float sidewaysValue = packet.getFloat().read(0);
                 float forwardsValue = packet.getFloat().read(1);
