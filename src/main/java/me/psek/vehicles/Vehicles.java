@@ -12,7 +12,7 @@ import me.psek.vehicles.handlers.nms.Mediator;
 import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.ItemHeldListener;
 import me.psek.vehicles.listeners.JoinListener;
-import me.psek.vehicles.packetlisteners.VehicleSteerPacket;
+import me.psek.vehicles.listeners.packet.SteerPacketListener;
 import me.psek.vehicles.vehicleentites.IVehicleEntity;
 import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
 import me.psek.vehicles.tickers.cartickers.MovementTicker;
@@ -155,7 +155,7 @@ public final class Vehicles extends JavaPlugin {
     }
 
     private void registerPacketListeners(NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
-        new VehicleSteerPacket(this, centerUUIDKey, vehicleSortClassName);
+        new SteerPacketListener(this, centerUUIDKey, vehicleSortClassName);
     }
 
     @SuppressWarnings("ConstantConditions")

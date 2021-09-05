@@ -1,4 +1,4 @@
-package me.psek.vehicles.packetlisteners;
+package me.psek.vehicles.listeners.packet;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.ListenerPriority;
@@ -14,10 +14,10 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Objects;
 
-public class VehicleSteerPacket {
+public class SteerPacketListener {
     private final Vehicles plugin;
 
-    public VehicleSteerPacket(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
+    public SteerPacketListener(Vehicles plugin, NamespacedKey centerUUIDKey, NamespacedKey vehicleSortClassName) {
         onVehicleSteerPacket(plugin, centerUUIDKey, vehicleSortClassName);
         this.plugin = plugin;
     }

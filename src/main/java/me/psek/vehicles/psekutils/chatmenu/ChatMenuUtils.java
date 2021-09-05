@@ -1,7 +1,5 @@
 package me.psek.vehicles.psekutils.chatmenu;
 
-import com.google.common.collect.Lists;
-import com.mojang.datafixers.util.Pair;
 import me.psek.vehicles.Vehicles;
 import me.psek.vehicles.psekutils.conversationapi.*;
 import net.md_5.bungee.api.chat.ClickEvent;
@@ -13,24 +11,9 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 public class ChatMenuUtils {
-    public static Stack<Pair<Player, String>> chatBuffer = new Stack<>();
-
-    public static void chatBufferAdd(Player player, String string) {
-        Pair<Player, String> pair = new Pair<>(player, string);
-        if (chatBuffer.size() < 256) {
-            chatBuffer.push(pair);
-            return;
-        }
-        chatBuffer.pop();
-        chatBuffer.push(pair);
-    }
-
     public static void test(Player player, Vehicles plugin) {
         assert player != null;
         Prompt test = new Prompt() {
@@ -59,13 +42,12 @@ public class ChatMenuUtils {
             }
         };
         ConversationFactory conversationFactory = ConversationFactory.builder()
-                .captured(true)
-                .isolated(true)
                 .participants(Bukkit.getOnlinePlayers().stream().map(Conversable::getConversable).collect(Collectors.toList()))
-                .prefix(new TextComponent("[sonaryMC] "))
+                .prefix(new TextComponent("[SonaryMC] "))
                 .firstPrompt(new Prompt() {
                     @Override
                     public @NotNull TextComponent getMessage(ConversationContext conversationContext) {
+                        //conversationContext.getConversation().getParticipants().get(1).addRole(conversationContext.getConversation(), new SpeakerOnly());
                         return new TextComponent("beginning");
                     }
 
@@ -78,11 +60,15 @@ public class ChatMenuUtils {
                     public Prompt nextPrompt(ConversationContext conversationContext) {
                         return test;
                     }
-                }).build();
+                })
+                .defaultClearChat(false)
+                .restoreChatAtFinish(false)
+                .restoreChatAtFinishDelay(0)
+                .build();
         new Conversation(plugin, conversationFactory);
     }
 
     static {
-        Vehicles.getInstance().getServer().getPluginManager().registerEvents(new ChatListener(), Vehicles.getInstance());
+        new ConversationAPI(Vehicles.getInstance(), 500);
     }
 }

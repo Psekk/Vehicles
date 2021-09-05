@@ -2,19 +2,19 @@ package me.psek.vehicles.psekutils.conversationapi;
 
 import lombok.Getter;
 import lombok.Setter;
+import me.psek.vehicles.psekutils.Pair;
 import me.psek.vehicles.psekutils.conversationapi.events.ConversationEndEvent;
 import me.psek.vehicles.psekutils.conversationapi.listeners.ChatListener;
+import me.psek.vehicles.psekutils.conversationapi.roles.DefaultRole;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 //todo make a ConversationAPI.class and make a constructor that initializes the listeners and make a timeout ticker that unregisters and registers at a new request
 
@@ -24,12 +24,13 @@ public class Conversation {
     private static final List<Conversable> IN_CONVERSATION = new ArrayList<>();
 
     @Getter
-    private final Set<Conversable> participants = new HashSet<>();
+    private final List<Conversable> participants = new ArrayList<>();
     @Getter
     private final ConversationContext conversationContext;
     @Getter
     private final Prompt firstPrompt;
     private final Plugin plugin;
+    private final ConversationFactory conversationFactory;
 
     @Getter
     @Setter
@@ -46,27 +47,54 @@ public class Conversation {
     public Conversation(Plugin plugin, ConversationFactory conversationFactory) {
         conversationContext = new ConversationContext(plugin, this);
         Prompt previousPrompt = conversationFactory.getFirstPrompt();
+        this.conversationFactory = conversationFactory;
         this.currentPrompt = previousPrompt;
         this.firstPrompt = previousPrompt;
         this.previousPrompt = previousPrompt;
         this.plugin = plugin;
         this.prefix = conversationFactory.getPrefix();
-        startConversation(conversationFactory);
+        startConversation();
     }
 
-    public void startConversation(ConversationFactory conversationFactory) {
-        if (ChatListener.listener == null) {
-            ChatListener chatListener = new ChatListener();
-            Bukkit.getServer().getPluginManager().registerEvents(chatListener, plugin);
-            ChatListener.listener = chatListener;
+    //todo look at new fancy ways to clear chat
+    private void clearChat(Player player) {
+        for (int i = 0; i < 100; i++) {
+            player.sendMessage("");
         }
+    }
+
+    public void restoreChat() {
+        for (Conversable conversable : participants) {
+            if (!conversable.getRoles().get(this).canHear()) {
+                continue;
+            }
+            Player player = conversable.getPlayer();
+            System.out.printf("Restored player %s's chat%n", player);
+            clearChat(player);
+            ChatContainer chatContainer = ChatContainer.getChatContainer(player.getUniqueId());
+            System.out.printf("size of chat buffer: %s", chatContainer.getChatBuffer().size());
+            for (Pair<UUID, TextComponent> pair : chatContainer.getChatBuffer()) {
+                player.spigot().sendMessage(pair.getSecondValue());
+            }
+        }
+    }
+
+    public void startConversation() {
+        ChatListener.setListener(new ChatListener(), plugin);
         participants.addAll(conversationFactory.getParticipants());
         for (Conversable conversable : conversationFactory.getParticipants()) {
             conversable.addToConversation(this);
+            if (conversable.getRoles().get(this) == null) {
+                conversable.addRole(this, new DefaultRole());
+            }
             if (IN_CONVERSATION.contains(conversable)) {
                 continue;
             }
             IN_CONVERSATION.add(conversable);
+            if (!conversable.getRoles().get(this).canHear() || !conversationFactory.isDefaultClearChat()){
+                continue;
+            }
+            clearChat(conversable.getPlayer());
         }
         conversationState = ConversationState.STARTED;
         sendNextPrompt();
@@ -80,6 +108,9 @@ public class Conversation {
         for (Conversable conversable : participants) {
             if (!conversable.getRoles().get(this).canHear()) {
                 continue;
+            }
+            if (conversationFactory.isDefaultClearChat()) {
+                clearChat(conversable.getPlayer());
             }
             conversable.getPlayer().spigot().sendMessage(baseComponents);
         }
@@ -104,7 +135,10 @@ public class Conversation {
                 continue;
             }
             IN_CONVERSATION.remove(conversable);
+            //conversable.removeFromConversation(this); //todo maybe keep it for a certain period to keep a small history (independent List to keep iteration time down) and yet keep max size down (implementing max size + overwriting)
         }
+        if (!conversationFactory.isRestoreChatAtFinish() || conversationFactory.getRestoreChatAtFinishDelay() == 0L) return;
+        Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, this::restoreChat, conversationFactory.getRestoreChatAtFinishDelay());
     }
 
     public void addParticipants(@NotNull Conversable... participants) {
