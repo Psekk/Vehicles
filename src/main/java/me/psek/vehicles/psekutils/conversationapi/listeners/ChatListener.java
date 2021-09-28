@@ -14,6 +14,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class ChatListener implements Listener {
     private void listener(AsyncPlayerChatEvent event) {
         //todo add incoming and outgoing chat blocking if the delay is still active (the delay for restoreChat())
         for (Conversable conversable : Conversation.getIN_CONVERSATION()) {
-            for (Conversation conversation : conversable.getConversations()) {
+            for (Conversation conversation : conversable.getActiveConversations().values()) {
                 if (!conversable.getRoles().get(conversation).isIsolated()) {
                     continue;
                 }
@@ -40,7 +41,7 @@ public class ChatListener implements Listener {
         }
         Player player = event.getPlayer();
         Conversable conversable = Conversable.getConversable(player);
-        List<Conversation> conversations = conversable.getConversations();
+        List<Conversation> conversations = new ArrayList<>(conversable.getActiveConversations().values());
         if (conversations.size() < 1) return;
         TextComponent message = new TextComponent(event.getMessage());
         Map<Conversation, ConversationRole> roles = conversable.getRoles();

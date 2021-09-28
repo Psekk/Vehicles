@@ -5,7 +5,7 @@ public class ServerUtils {
         try {
             Class.forName("org.bukkit.entity.Player$Spigot");
             return true;
-        } catch (Throwable tr) {
+        } catch (ClassNotFoundException ignored) {
             return false;
         }
     }

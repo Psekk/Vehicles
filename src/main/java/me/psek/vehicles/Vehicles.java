@@ -13,6 +13,7 @@ import me.psek.vehicles.listeners.EntityInteractListener;
 import me.psek.vehicles.listeners.ItemHeldListener;
 import me.psek.vehicles.listeners.JoinListener;
 import me.psek.vehicles.listeners.packet.SteerPacketListener;
+import me.psek.vehicles.psekutils.conversationapi.ConversationAPI;
 import me.psek.vehicles.vehicleentites.IVehicleEntity;
 import me.psek.vehicles.tickers.cartickers.MovementDataTicker;
 import me.psek.vehicles.tickers.cartickers.MovementTicker;
@@ -62,6 +63,8 @@ public final class Vehicles extends JavaPlugin {
         registerTickers();
         vehicleSaver.retrieveData(this);
         configHandler = new ConfigHandler(this);
+
+        new ConversationAPI(Vehicles.getInstance(), 500);
     }
 
     @Override

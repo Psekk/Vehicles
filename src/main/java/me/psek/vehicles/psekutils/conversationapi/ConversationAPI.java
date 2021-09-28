@@ -5,10 +5,14 @@ import me.psek.vehicles.psekutils.conversationapi.listeners.packet.ChatPacketLis
 import org.bukkit.Bukkit;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.Objects;
 
 @SuppressWarnings("unused")
 public class ConversationAPI {
-    public ConversationAPI(Plugin plugin, long timeout) {
+    public ConversationAPI(JavaPlugin plugin, long timeout) {
+        //Objects.requireNonNull(plugin.getCommand("24vs73x501")).setExecutor(new ChatMenuCommand());
         run(plugin, timeout);
     }
 

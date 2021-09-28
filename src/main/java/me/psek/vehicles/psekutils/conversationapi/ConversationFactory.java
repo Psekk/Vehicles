@@ -3,7 +3,6 @@ package me.psek.vehicles.psekutils.conversationapi;
 import lombok.Builder;
 import lombok.Getter;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 

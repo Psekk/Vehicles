@@ -18,6 +18,13 @@ public class ChatContainer {
         this.uuid = uuid;
     }
 
+    public static void removeUUID(UUID uuid) {
+        if (!UUIDS.containsKey(uuid)) {
+            return;
+        }
+        UUIDS.remove(uuid);
+    }
+
     public static ChatContainer getChatContainer(UUID uuid) {
         if (!UUIDS.containsKey(uuid)) {
             ChatContainer chatContainer = new ChatContainer(uuid);
@@ -27,12 +34,12 @@ public class ChatContainer {
         return UUIDS.get(uuid);
     }
 
-    public void add(TextComponent component) {
+    public void add(UUID sender, TextComponent component) {
         if (chatBuffer.size() > 100) {
             chatBuffer.remove(0);
-            chatBuffer.add(new Pair<>(uuid, component));
+            chatBuffer.add(new Pair<>(sender, component));
             return;
         }
-        chatBuffer.add(new Pair<>(uuid, component));
+        chatBuffer.add(new Pair<>(sender, component));
     }
 }

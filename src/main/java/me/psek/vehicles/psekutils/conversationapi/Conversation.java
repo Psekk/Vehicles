@@ -6,6 +6,7 @@ import me.psek.vehicles.psekutils.Pair;
 import me.psek.vehicles.psekutils.conversationapi.events.ConversationEndEvent;
 import me.psek.vehicles.psekutils.conversationapi.listeners.ChatListener;
 import me.psek.vehicles.psekutils.conversationapi.roles.DefaultRole;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -21,8 +23,12 @@ import java.util.*;
 @SuppressWarnings("unused")
 public class Conversation {
     @Getter
+    private static final UUID IDENTIFIER = new UUID(Long.MAX_VALUE, Long.MAX_VALUE);
+    @Getter
     private static final List<Conversable> IN_CONVERSATION = new ArrayList<>();
 
+    @Getter
+    private final UUID cUUID;
     @Getter
     private final List<Conversable> participants = new ArrayList<>();
     @Getter
@@ -44,7 +50,7 @@ public class Conversation {
     @Getter
     private Prompt currentPrompt;
 
-    public Conversation(Plugin plugin, ConversationFactory conversationFactory) {
+    public Conversation(Plugin plugin, ConversationFactory conversationFactory, @Nullable UUID cUUID) {
         conversationContext = new ConversationContext(plugin, this);
         Prompt previousPrompt = conversationFactory.getFirstPrompt();
         this.conversationFactory = conversationFactory;
@@ -53,13 +59,13 @@ public class Conversation {
         this.previousPrompt = previousPrompt;
         this.plugin = plugin;
         this.prefix = conversationFactory.getPrefix();
-        startConversation();
+        this.cUUID = cUUID == null ? UUID.randomUUID() : cUUID;
     }
 
     //todo look at new fancy ways to clear chat
     private void clearChat(Player player) {
         for (int i = 0; i < 100; i++) {
-            player.sendMessage("");
+            player.sendMessage(IDENTIFIER, "");
         }
     }
 
@@ -74,7 +80,7 @@ public class Conversation {
             ChatContainer chatContainer = ChatContainer.getChatContainer(player.getUniqueId());
             System.out.printf("size of chat buffer: %s", chatContainer.getChatBuffer().size());
             for (Pair<UUID, TextComponent> pair : chatContainer.getChatBuffer()) {
-                player.spigot().sendMessage(pair.getSecondValue());
+                player.spigot().sendMessage(IDENTIFIER, pair.getSecondValue());
             }
         }
     }
@@ -83,7 +89,7 @@ public class Conversation {
         ChatListener.setListener(new ChatListener(), plugin);
         participants.addAll(conversationFactory.getParticipants());
         for (Conversable conversable : conversationFactory.getParticipants()) {
-            conversable.addToConversation(this);
+            conversable.addToConversation(cUUID, this);
             if (conversable.getRoles().get(this) == null) {
                 conversable.addRole(this, new DefaultRole());
             }
@@ -112,7 +118,7 @@ public class Conversation {
             if (conversationFactory.isDefaultClearChat()) {
                 clearChat(conversable.getPlayer());
             }
-            conversable.getPlayer().spigot().sendMessage(baseComponents);
+            conversable.getPlayer().spigot().sendMessage(ChatMessageType.SYSTEM, IDENTIFIER, baseComponents);
         }
         Prompt prompt = getCurrentPrompt().nextPrompt(conversationContext);
         if (prompt == null) {
@@ -126,7 +132,7 @@ public class Conversation {
         }
     }
 
-    public synchronized void endConversation(@NotNull ConversationEndReason reason) {
+    public void endConversation(@NotNull ConversationEndReason reason) {
         conversationState = ConversationState.ENDED;
         ConversationEndEvent event = new ConversationEndEvent(reason, this);
         Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getServer().getPluginManager().callEvent(event));
@@ -144,7 +150,7 @@ public class Conversation {
     public void addParticipants(@NotNull Conversable... participants) {
         for (Conversable conversable : participants) {
             this.participants.add(conversable);
-            conversable.addToConversation(this);
+            conversable.addToConversation(cUUID, this);
         }
     }
 

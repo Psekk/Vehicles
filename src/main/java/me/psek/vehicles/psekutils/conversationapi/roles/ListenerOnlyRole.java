@@ -2,7 +2,7 @@ package me.psek.vehicles.psekutils.conversationapi.roles;
 
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class ListenerOnly implements ConversationRole {
+public class ListenerOnlyRole implements ConversationRole {
     @Override
     public TextComponent getPrefix() {
         return new TextComponent("");

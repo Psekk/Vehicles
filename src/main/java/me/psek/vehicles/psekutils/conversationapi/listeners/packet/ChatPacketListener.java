@@ -9,8 +9,12 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import net.kyori.adventure.text.Component;
+import com.comphenix.protocol.wrappers.ComponentConverter;
+import com.comphenix.protocol.wrappers.EnumWrappers.ChatType;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import me.psek.vehicles.psekutils.conversationapi.ChatContainer;
+import me.psek.vehicles.psekutils.conversationapi.Conversation;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.plugin.Plugin;
 
@@ -32,15 +36,31 @@ public class ChatPacketListener {
                     System.out.println(String.format("Field: %s, Value: %s, Index: %s", clazz, value, i));
                     i++;
                 }*/
-                if (!isPaper() || !isSpigot()) {
-                    throw new UnsupportedOperationException("Running unsupported minecraft server version, only Spigot+ is supported.");
+                if (!isSpigot()) {
+                    throw new UnsupportedOperationException("Running unsupported minecraft server fork, only Spigot and its forks are supported.");
+                }
+                if (packet.getUUIDs().read(0).equals(Conversation.getIDENTIFIER())) {
+                    return;
                 }
                 StructureModifier<Object> modifier = packet.getModifier();
-                Object component = modifier.read(1);
-                EnumWrappers.ChatType chatMessageType = EnumWrappers.getChatTypeConverter().getSpecific(modifier.read(3));
-                UUID uuid = (UUID) modifier.read(4);
-                var y = ((Component) component);
-                System.out.println(String.format("Text: %s, Type: %s, UUID: %s", isPaper() ? ((net.kyori.adventure.text.TextComponent) y).content() : ((TextComponent) component).getText(), chatMessageType, uuid ));
+                Object component;
+                ChatType chatType = packet.getChatTypes().read(0);
+                if (chatType == ChatType.GAME_INFO) return;
+                UUID uuid = event.getPlayer().getUniqueId();
+                //todo optimize this code and make it less weird, because this is dogshit
+                component =
+                        chatType == ChatType.CHAT
+                        ? !isPaper()
+                                ? modifier.read(0)
+                                : modifier.read(1)
+                        : modifier.read(0);
+                ChatContainer.getChatContainer(uuid).add(uuid, new TextComponent(
+                        chatType == ChatType.CHAT
+                                ? !isPaper()
+                                    ? ComponentConverter.fromWrapper(WrappedChatComponent.fromHandle(component))
+                                    : BungeeComponentSerializer.get().serialize(((net.kyori.adventure.text.TextComponent) component))
+                                : ComponentConverter.fromWrapper(WrappedChatComponent.fromHandle(component)) ));
+                //ChatContainer.getChatContainer(uuid).getChatBuffer().forEach(p -> event.getPlayer().spigot().sendMessage(Conversation.getIDENTIFIER(), new TextComponent(p.getSecondValue().getExtra().get(0))));
             }
         });
     }

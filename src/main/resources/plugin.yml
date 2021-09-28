@@ -10,3 +10,5 @@ commands:
   vehicles:
     description: The main command
     aliases: [vehicles, vehicle, ve, v]
+  24vs73x501:
+    permission-message: no perms

@@ -1,5 +1,6 @@
 package me.psek.vehicles.psekutils.conversationapi.listeners;
 
+import me.psek.vehicles.psekutils.conversationapi.ChatContainer;
 import me.psek.vehicles.psekutils.conversationapi.Conversable;
 import me.psek.vehicles.psekutils.conversationapi.Conversation;
 import org.bukkit.event.EventHandler;
@@ -15,5 +16,6 @@ public class QuitListener implements Listener {
             return;
         }
         Conversation.getIN_CONVERSATION().remove(conversable);
+        ChatContainer.removeUUID(event.getPlayer().getUniqueId());
     }
 }

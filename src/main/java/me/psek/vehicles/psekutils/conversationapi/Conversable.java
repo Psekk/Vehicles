@@ -13,7 +13,9 @@ public class Conversable {
     private static final Map<Player, Conversable> CONVERSABLES = new WeakHashMap<>();
 
     @Getter
-    private final List<Conversation> conversations = new ArrayList<>();
+    private final Map<UUID, Conversation> activeConversations = new HashMap<>();
+    @Getter
+    private final Map<Conversation, Long> conversationHistory = new HashMap<>();
     @Getter
     private final Player player;
 
@@ -34,15 +36,16 @@ public class Conversable {
         return conversable;
     }
 
-    public void addToConversation(Conversation conversation) {
-        conversations.add(conversation);
+    public void addToConversation(UUID cUUID, Conversation conversation) {
+        activeConversations.put(cUUID, conversation);
+        conversationHistory.put(conversation, System.currentTimeMillis());
     }
 
-    public void removeFromConversation(Conversation conversation) {
-        if (!conversations.contains(conversation)) {
+    public void removeFromConversation(UUID cUUID) {
+        if (!activeConversations.containsKey(cUUID)) {
             return;
         }
-        conversations.remove(conversation);
+        activeConversations.remove(cUUID);
     }
 
     //also allows you to give an existing conversation and change the role
